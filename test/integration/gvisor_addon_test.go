@@ -38,7 +38,7 @@ func TestGvisorAddon(t *testing.T) {
 		CleanupWithLogs(t, profile, cancel)
 	}()
 
-	startArgs := append([]string{"start", "-p", profile, "--container-runtime=containerd", "--docker-opt", "containerd=/var/run/containerd/containerd.sock", "--wait=false"}, StartArgs()...)
+	startArgs := append([]string{"start", "-p", profile, "--container-runtime=containerd", "--docker-opt", "containerd=/var/run/containerd/containerd.sock", "--enable-default-cni", "--network-plugin=cni", "--wait=false"}, StartArgs()...)
 	rr, err := Run(t, exec.CommandContext(ctx, Target(), startArgs...))
 	if err != nil {
 		t.Fatalf("%s failed: %v", rr.Args, err)
