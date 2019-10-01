@@ -337,7 +337,7 @@ func runStart(cmd *cobra.Command, args []string) {
 	}
 
 	// setup kubeadm (must come after setupKubeconfig)
-	bs := setupKubeAdm(machineAPI, config.KubernetesConfig)
+	bs := setupKubeAdm(machineAPI, config.KubernetesConfig, cr)
 
 	// pull images or restart cluster
 	bootstrapCluster(bs, cr, mRunner, config.KubernetesConfig, preExists, isUpgrade)
@@ -992,7 +992,7 @@ func getKubernetesVersion(old *cfg.Config) (string, bool) {
 }
 
 // setupKubeAdm adds any requested files into the VM before Kubernetes is started
-func setupKubeAdm(mAPI libmachine.API, kc cfg.KubernetesConfig) bootstrapper.Bootstrapper {
+func setupKubeAdm(mAPI libmachine.API, kc cfg.KubernetesConfig, cr cruntime.Manager) bootstrapper.Bootstrapper {
 	bs, err := getClusterBootstrapper(mAPI, viper.GetString(cmdcfg.Bootstrapper))
 	if err != nil {
 		exit.WithError("Failed to get bootstrapper", err)
@@ -1006,6 +1006,10 @@ func setupKubeAdm(mAPI libmachine.API, kc cfg.KubernetesConfig) bootstrapper.Boo
 	}
 	if err := bs.SetupCerts(kc); err != nil {
 		exit.WithError("Failed to setup certs", err)
+	}
+	err = cr.Enable(false)
+	if err != nil {
+		exit.WithError("Failed to enable container runtime", err)
 	}
 	return bs
 }
