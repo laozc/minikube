@@ -36,6 +36,7 @@ const fileScheme = "file"
 
 // ISODownloader downloads an ISO
 type ISODownloader interface {
+	GetISOCacheFilepath(isoURL string) string
 	GetISOFileURI(isoURL string) string
 	CacheMinikubeISOFromURL(isoURL string) error
 }
