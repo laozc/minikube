@@ -152,6 +152,25 @@ if [ -n "$BOOT2DOCKER_DATA" ]; then
     ## make an env file for other services to discover this PARTNAME easier
     mkdir -p /var/run/minikube
     echo "PERSISTENT_DIR=\"/mnt/$PARTNAME\"" > /var/run/minikube/env
+
+    ## copy metadata
+    if [ -e "/dev/sr0" ]; then
+        mkdir /tmp/cdrom
+        mount /dev/sr0 /tmp/cdrom -o ro
+        mkdir -p /mnt/$PARTNAME/var/lib/metadata
+        mkdir -p /var/lib/metadata
+        mount --bind /mnt/$PARTNAME/var/lib/metadata /var/lib/metadata
+        if [ -e "/tmp/cdrom/metadata.tar" ]; then
+            tar xf /tmp/cdrom/metadata.tar -C /var/lib/metadata/
+        fi
+        umount /tmp/cdrom
+        rmdir /tmp/cdrom
+    fi
+
+    ## run initialize
+    if [ -e "/var/lib/metadata/init.sh" ]; then
+        pushd /var/lib/metadata > /dev/null && chmod +x ./init.sh && . ./init.sh && popd > /dev/null
+    fi
 fi
 
 # /etc dirs are initialised from /usr/local, to allow the user/admin to customise
