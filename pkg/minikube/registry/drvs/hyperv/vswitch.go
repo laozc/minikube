@@ -26,6 +26,13 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	internalSwitch = "Internal"
+	privateSwitch  = "private"
+)
+
+type switchType string
+
 type netAdapter struct {
 	InterfaceGUID        string `json:"interfaceGuid"`
 	InterfaceDescription string
@@ -133,10 +140,18 @@ func getOrderedAdapters() ([]netAdapter, error) {
 }
 
 // create a new VM switch of the given name and network adapter
-func createVMSwitch(switchName string, adapter netAdapter) error {
-	err := cmd(fmt.Sprintf("Hyper-V\\New-VMSwitch -Name \"%s\" -NetAdapterInterfaceDescription \"%s\"", switchName, adapter.InterfaceDescription))
+func createVMSwitch(switchName string, swType switchType, adapter netAdapter) error {
+	if adapter.InterfaceDescription != "" {
+		err := cmd(fmt.Sprintf("Hyper-V\\New-VMSwitch -Name \"%s\" -NetAdapterInterfaceDescription \"%s\"", switchName, adapter.InterfaceDescription))
+		if err != nil {
+			return errors.Wrapf(err, "failed to create VM switch %s with adapter %s", switchName, adapter.InterfaceGUID)
+		}
+		return nil
+	}
+
+	err := cmd(fmt.Sprintf("Hyper-V\\New-VMSwitch -Name \"%s\" -SwitchType \"%s\"", switchName, swType))
 	if err != nil {
-		return errors.Wrapf(err, "failed to create VM switch %s with adapter %s", switchName, adapter.InterfaceGUID)
+		return errors.Wrapf(err, "failed to create VM switch %s of type %s", switchName, swType)
 	}
 
 	return nil

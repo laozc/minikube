@@ -64,7 +64,7 @@ func configure(config cfg.MachineConfig) (interface{}, error) {
 		if config.HypervExternalAdapter == "" && switchName == "" {
 			// create a switch on the returned adapter
 			switchName = defaultExternalSwitchName
-			err := createVMSwitch(switchName, adapter)
+			err := createVMSwitch(switchName, "", adapter)
 			if err != nil {
 				return "", err
 			}
