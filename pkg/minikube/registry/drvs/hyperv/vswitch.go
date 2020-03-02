@@ -28,7 +28,6 @@ import (
 
 const (
 	internalSwitch = "Internal"
-	privateSwitch  = "private"
 )
 
 type switchType string
@@ -36,6 +35,7 @@ type switchType string
 type netAdapter struct {
 	InterfaceGUID        string `json:"interfaceGuid"`
 	InterfaceDescription string
+	InterfaceIndex       int    `json:"ifIndex"`
 }
 
 type vmSwitch struct {
@@ -53,7 +53,7 @@ func getNetAdapters(physical bool, condition string) ([]netAdapter, error) {
 	if condition != "" {
 		cmd = append(cmd, fmt.Sprintf("Where-Object {%s}", condition))
 	}
-	cmd = append(cmd, "Select-Object -Property InterfaceGuid, InterfaceDescription")
+	cmd = append(cmd, "Select-Object -Property InterfaceGuid, InterfaceDescription, ifIndex")
 	stdout, err := cmdOut(fmt.Sprintf("ConvertTo-Json @(%s)", strings.Join(cmd, " | ")))
 	if err != nil {
 		return nil, err

@@ -49,6 +49,7 @@ type MachineConfig struct {
 	HypervVirtualSwitch     string
 	HypervUseExternalSwitch bool
 	HypervExternalAdapter   string
+	HypervNatCIDR           string
 	KVMNetwork              string             // Only used by the KVM driver
 	KVMQemuURI              string             // Only used by kvm2
 	KVMGPU                  bool               // Only used by kvm2

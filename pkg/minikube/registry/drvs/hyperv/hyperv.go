@@ -56,20 +56,39 @@ func configure(config cfg.MachineConfig) (interface{}, error) {
 	d := hyperv.NewDriver(config.Name, localpath.MiniPath())
 	d.Boot2DockerURL = config.Downloader.GetISOFileURI(config.MinikubeISO)
 	d.VSwitch = config.HypervVirtualSwitch
-	if d.VSwitch == "" && config.HypervUseExternalSwitch {
-		switchName, adapter, err := chooseSwitch(config.HypervExternalAdapter)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to choose switch for Hyper-V driver")
-		}
-		if config.HypervExternalAdapter == "" && switchName == "" {
-			// create a switch on the returned adapter
-			switchName = defaultExternalSwitchName
-			err := createVMSwitch(switchName, "", adapter)
+	if d.VSwitch == "" {
+		if config.HypervUseExternalSwitch {
+			switchName, adapter, err := chooseSwitch(config.HypervExternalAdapter)
 			if err != nil {
-				return "", err
+				return nil, errors.Wrapf(err, "failed to choose switch for Hyper-V driver")
 			}
+			if config.HypervExternalAdapter == "" && switchName == "" {
+				// create a switch on the returned adapter
+				switchName = defaultExternalSwitchName
+				err := createVMSwitch(switchName, "", adapter)
+				if err != nil {
+					return "", err
+				}
+			}
+			d.VSwitch = switchName
+
+		} else {
+			// use internal switch
+			internalSwitchName := strings.Join([]string{config.Name, "nat", "switch"}, "-")
+			foundSwitches, err := getVMSwitch(fmt.Sprintf("($_.Name -eq \"%s\") -And ($_.SwitchType -eq 1)", internalSwitchName))
+			if err != nil {
+				return nil, err
+			}
+
+			if len(foundSwitches) < 1 {
+				// create a new internal switch
+				err := createNATSwitch(internalSwitchName, config.HypervNatCIDR)
+				if err != nil {
+					return "", err
+				}
+			}
+			d.VSwitch = internalSwitchName
 		}
-		d.VSwitch = switchName
 	}
 	d.MemSize = config.Memory
 	d.CPU = config.CPUs

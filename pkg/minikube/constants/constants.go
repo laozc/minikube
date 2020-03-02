@@ -51,6 +51,8 @@ const (
 	ClusterDNSDomain = "cluster.local"
 	// DefaultServiceCIDR is The CIDR to be used for service cluster IPs
 	DefaultServiceCIDR = "10.96.0.0/12"
+	// DefaultHypervNatCIDR is the CIDR to be used for Hyper-V allocating NAT networks, where the IP address represents the Gateway
+	DefaultHypervNatCIDR = "192.168.88.1/24"
 
 	// DockerHostEnv is used for docker daemon settings
 	DockerHostEnv = "DOCKER_HOST"
