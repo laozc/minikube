@@ -75,17 +75,10 @@ func configure(config cfg.MachineConfig) (interface{}, error) {
 		} else {
 			// use internal switch
 			internalSwitchName := strings.Join([]string{config.Name, "nat", "switch"}, "-")
-			foundSwitches, err := getVMSwitch(fmt.Sprintf("($_.Name -eq \"%s\") -And ($_.SwitchType -eq 1)", internalSwitchName))
+			natNetworkName := strings.Join([]string{config.Name, "nat", "network"}, "-")
+			err := ensureNATSwitch(internalSwitchName, natNetworkName, config.HypervNatCIDR)
 			if err != nil {
-				return nil, err
-			}
-
-			if len(foundSwitches) < 1 {
-				// create a new internal switch
-				err := createNATSwitch(internalSwitchName, config.HypervNatCIDR)
-				if err != nil {
-					return "", err
-				}
+				return "", err
 			}
 			d.VSwitch = internalSwitchName
 		}
