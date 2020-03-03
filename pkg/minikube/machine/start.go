@@ -19,6 +19,9 @@ package machine
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net"
+	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
@@ -32,11 +35,14 @@ import (
 	"github.com/juju/mutex"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
+
+	"k8s.io/minikube/pkg/libarchive"
 	"k8s.io/minikube/pkg/minikube/command"
 	"k8s.io/minikube/pkg/minikube/config"
 	"k8s.io/minikube/pkg/minikube/constants"
 	"k8s.io/minikube/pkg/minikube/driver"
 	"k8s.io/minikube/pkg/minikube/localpath"
+	"k8s.io/minikube/pkg/minikube/metadata"
 	"k8s.io/minikube/pkg/minikube/out"
 	"k8s.io/minikube/pkg/minikube/registry"
 	"k8s.io/minikube/pkg/minikube/sshutil"
@@ -96,6 +102,85 @@ func engineOptions(cfg config.MachineConfig) *engine.Options {
 	return &o
 }
 
+// guess next IP of the sub network
+func incrementIP(startIP net.IP, ipNet net.IPNet) (net.IP, error) {
+	ip := make(net.IP, len(startIP))
+	copy(ip, startIP)
+	for i := len(ip) - 1; i >= 0; i-- {
+		ip[i]++
+		if ip[i] != 0 {
+			break
+		}
+	}
+	if !ipNet.Contains(ip) {
+		return nil, errors.New("overflowed CIDR while incrementing IP")
+	}
+	return ip, nil
+}
+
+// customize ISO to include initialization metadata for each host VM
+func customizeISO(cfg *config.MachineConfig) error {
+	isoPath := cfg.Downloader.GetISOCacheFilepath(cfg.MinikubeISO)
+	customizedISOPath := filepath.Join(localpath.MiniPath(), "machines", cfg.Name, filepath.Base(isoPath))
+
+	err := os.MkdirAll(filepath.Dir(customizedISOPath), 0755)
+	if err != nil {
+		return err
+	}
+
+	gatewayIP, ipNet, err := net.ParseCIDR(cfg.HypervNatCIDR)
+	if err != nil {
+		return errors.Wrapf(err, "specified CIDR %s is not valid", cfg.HypervNatCIDR)
+	}
+
+	nextIP, err := incrementIP(gatewayIP, *ipNet)
+	if err != nil {
+		return err
+	}
+
+	md := metadata.Metadata{
+		Networks: map[string]metadata.Network{
+			metadata.DefaultNetworkInterface: {
+				MachineIPNet: net.IPNet{
+					IP:   nextIP,
+					Mask: ipNet.Mask,
+				},
+				GatewayIP: gatewayIP,
+				DNS:       "",
+				ForceIPv4: true,
+			},
+		}}
+	err = func() error {
+		mt, err := ioutil.TempFile("", "metadata*.tar")
+		if err != nil {
+			return err
+		}
+
+		mt.Close()
+		defer os.Remove(mt.Name())
+
+		err = metadata.CreateMetadataTar(mt.Name(), md)
+		if err != nil {
+			return errors.Wrapf(err, "failed to create metadata tar file")
+		}
+
+		err = libarchive.PatchISO(isoPath, customizedISOPath, map[string]string{
+			mt.Name(): "/metadata.tar",
+		})
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}()
+	if err != nil {
+		return err
+	}
+
+	cfg.MinikubeISO = "file://" + filepath.ToSlash(customizedISOPath)
+	return nil
+}
+
 func createHost(api libmachine.API, cfg config.MachineConfig) (*host.Host, error) {
 	glog.Infof("createHost starting for %q (driver=%q)", cfg.Name, cfg.Driver)
 	start := time.Now()
@@ -113,6 +198,10 @@ func createHost(api libmachine.API, cfg config.MachineConfig) (*host.Host, error
 	def := registry.Driver(cfg.Driver)
 	if def.Empty() {
 		return nil, fmt.Errorf("unsupported/missing driver: %s", cfg.Driver)
+	}
+	err := customizeISO(&cfg)
+	if err != nil {
+		return nil, errors.Wrap(err, "customize ISO")
 	}
 	dd, err := def.Config(cfg)
 	if err != nil {

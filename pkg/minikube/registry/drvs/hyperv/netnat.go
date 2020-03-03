@@ -58,7 +58,7 @@ func getNetNAT(condition string) ([]netNATNetwork, error) {
 
 // removes NAT network configuration
 func removeNetNATNetwork(natNetworkName string) error {
-	err := cmd(fmt.Sprintf("Remove-NetNat -Name \"%s\"", natNetworkName))
+	err := cmd(fmt.Sprintf("Remove-NetNat -Name \"%s\" -Confirm:$false", natNetworkName))
 	return err
 }
 
