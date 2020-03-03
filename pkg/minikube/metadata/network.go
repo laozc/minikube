@@ -34,7 +34,9 @@ Name={{ .NetworkInterface }}
 [Network]
 Address={{ .IPAddress }}
 Gateway={{ .GatewayIP }}
-DNS={{ .DNS }}
+{{- range $s := .DNS}}
+DNS={{ $s -}}
+{{end}}
 IPv6AcceptRA={{ .IPv6AcceptRA }}
 `))
 
@@ -67,7 +69,7 @@ func generateNetworkConfig(dir string, md Metadata) error {
 			NetworkInterface string
 			IPAddress        string
 			GatewayIP        string
-			DNS              string
+			DNS              []string
 			IPv6AcceptRA     string
 		}{
 			NetworkInterface: ifName,

@@ -76,6 +76,8 @@ var (
 	MountProcessFileName = ".mount-process"
 	// SHASuffix is the suffix of a SHA-256 checksum file
 
+	// DefaultHypervDNSServers is a list of DNS to be used to configure Hyper-V virtual NIC
+	DefaultHypervDNSServers = []string{"8.8.8.8", "8.8.4.4"}
 )
 
 var (

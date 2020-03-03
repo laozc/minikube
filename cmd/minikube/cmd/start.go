@@ -79,6 +79,7 @@ const (
 	hypervUseExternalSwitch = "hyperv-use-external-switch"
 	hypervExternalAdapter   = "hyperv-external-adapter"
 	HypervNatCIDR           = "hyperv-nat-cidr"
+	HypervDNSServers        = "hyperv-dns-servers"
 	kvmNetwork              = "kvm-network"
 	kvmQemuURI              = "kvm-qemu-uri"
 	kvmGPU                  = "kvm-gpu"
@@ -219,6 +220,7 @@ func initDriverFlags() {
 	startCmd.Flags().Bool(hypervUseExternalSwitch, false, "Whether to use external switch over Default Switch if virtual switch not explicitly specified. (hyperv driver only)")
 	startCmd.Flags().String(hypervExternalAdapter, "", "External Adapter on which external switch will be created if no external switch is found. (hyperv driver only)")
 	startCmd.Flags().String(HypervNatCIDR, constants.DefaultHypervNatCIDR, fmt.Sprintf("the CIDR to be used for Hyper-V allocating NAT networks, where the IP address represents the Gateway. (hyperv driver only, defaults to %s)", constants.DefaultHypervNatCIDR))
+	startCmd.Flags().StringSlice(HypervDNSServers, constants.DefaultHypervDNSServers, fmt.Sprintf("a list of DNS to be used to configure Hyper-V virtual NIC. (hyperv driver only)"))
 }
 
 // initNetworkingFlags inits the commandline flags for connectivity related flags for start
@@ -799,6 +801,7 @@ func generateCfgFromFlags(cmd *cobra.Command, k8sVersion string, drvName string)
 		HypervUseExternalSwitch: viper.GetBool(hypervUseExternalSwitch),
 		HypervExternalAdapter:   viper.GetString(hypervExternalAdapter),
 		HypervNatCIDR:           viper.GetString(HypervNatCIDR),
+		HypervNatDNSServers:     viper.GetStringSlice(HypervDNSServers),
 		KVMNetwork:              viper.GetString(kvmNetwork),
 		KVMQemuURI:              viper.GetString(kvmQemuURI),
 		KVMGPU:                  viper.GetBool(kvmGPU),

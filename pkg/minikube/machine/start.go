@@ -146,7 +146,7 @@ func customizeISO(cfg *config.MachineConfig) error {
 					Mask: ipNet.Mask,
 				},
 				GatewayIP: gatewayIP,
-				DNS:       "",
+				DNS:       cfg.HypervNatDNSServers,
 				ForceIPv4: true,
 			},
 		}}

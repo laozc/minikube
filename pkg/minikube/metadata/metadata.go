@@ -34,7 +34,7 @@ const (
 type Network struct {
 	MachineIPNet net.IPNet
 	GatewayIP    net.IP
-	DNS          string
+	DNS          []string
 	ForceIPv4    bool
 }
 
