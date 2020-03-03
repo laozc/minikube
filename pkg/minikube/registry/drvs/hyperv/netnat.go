@@ -70,22 +70,29 @@ func createNetNATNetwork(natNetworkName string, ipNet net.IPNet) error {
 
 // ensures gateway for the NAT network exists and its configuration is correct
 func ensureNATGateway(adapter netAdapter, gatewayIP net.IP, netRange net.IPNet) error {
-	ips, err := getNetIPAddresses(fmt.Sprintf("($_.IPAddress -eq \"%s\")", gatewayIP.String()))
+	ips, err := getNetIPAddresses(fmt.Sprintf("($_.InterfaceIndex -eq %d)", adapter.InterfaceIndex))
 	if err != nil {
 		return err
 	}
 
 	prefixLength, _ := netRange.Mask.Size()
-	if len(ips) > 0 {
-		ip := ips[0]
-		if ip.InterfaceIndex != adapter.InterfaceIndex || ip.PrefixLength != prefixLength {
-			err = setNetIPAddress(adapter, gatewayIP, prefixLength)
+	found := false
+	for _, ip := range ips {
+		if ip.PrefixOrigin.IsManual() {
+			if ip.IPAddress == gatewayIP.String() && ip.PrefixLength == prefixLength {
+				found = true
+				continue
+			}
+
+			netIP := net.ParseIP(ip.IPAddress)
+			err = removeNetIPAddress(netIP)
 			if err != nil {
-				return errors.Wrapf(err, "failed to update IP configuration for NAT gateway on adapter %s", adapter.InterfaceDescription)
+				return errors.Wrapf(err, "failed remove IP %s for NAT gateway on adapter %s", ip.IPAddress, adapter.InterfaceDescription)
 			}
 		}
+	}
 
-	} else {
+	if !found {
 		err = newNetIPAddress(adapter, gatewayIP, prefixLength)
 		if err != nil {
 			return errors.Wrapf(err, "failed to create NAT gateway on adapter %s", adapter.InterfaceDescription)

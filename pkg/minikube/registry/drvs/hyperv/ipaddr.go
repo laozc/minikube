@@ -27,12 +27,25 @@ import (
 
 const (
 	ipv4AddressFamily = 2
+
+	dhcpOrigin   = 3
+	manualOrigin = 1
 )
 
 type netAddressFamily int
 
-func (f netAddressFamily) isV4() bool {
+func (f netAddressFamily) IsV4() bool {
 	return f == ipv4AddressFamily
+}
+
+type prefixOrigin int
+
+func (o prefixOrigin) IsDHCP() bool {
+	return o == dhcpOrigin
+}
+
+func (o prefixOrigin) IsManual() bool {
+	return o == manualOrigin
 }
 
 type netIPAddress struct {
@@ -41,6 +54,7 @@ type netIPAddress struct {
 	InterfaceAlias string
 	AddressFamily  netAddressFamily
 	PrefixLength   int
+	PrefixOrigin   prefixOrigin
 }
 
 func getNetIPAddresses(condition string) ([]netIPAddress, error) {
@@ -48,7 +62,7 @@ func getNetIPAddresses(condition string) ([]netIPAddress, error) {
 	if condition != "" {
 		cmd = append(cmd, fmt.Sprintf("Where-Object {%s}", condition))
 	}
-	cmd = append(cmd, "Select-Object -Property IPAddress, InterfaceIndex, InterfaceAlias, AddressFamily, PrefixLength")
+	cmd = append(cmd, "Select-Object -Property IPAddress, InterfaceIndex, InterfaceAlias, AddressFamily, PrefixLength, PrefixOrigin")
 	stdout, err := cmdOut(fmt.Sprintf("ConvertTo-Json @(%s)", strings.Join(cmd, " | ")))
 	if err != nil {
 		return nil, err
@@ -72,5 +86,11 @@ func setNetIPAddress(adapter netAdapter, ip net.IP, prefixLength int) error {
 // Creates and configures an IP address
 func newNetIPAddress(adapter netAdapter, ip net.IP, prefixLength int) error {
 	err := cmd(fmt.Sprintf("New-NetIPAddress -IPAddress \"%s\" -PrefixLength %d -InterfaceIndex %d", ip.String(), prefixLength, adapter.InterfaceIndex))
+	return err
+}
+
+// Removes an IP address
+func removeNetIPAddress(ip net.IP) error {
+	err := cmd(fmt.Sprintf("Remove-NetIPAddress -IPAddress \"%s\" -Confirm:$false", ip.String()))
 	return err
 }
