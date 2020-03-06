@@ -24,6 +24,7 @@ import (
 	"path/filepath"
 	"text/template"
 
+	"github.com/golang/glog"
 	"github.com/pkg/errors"
 )
 
@@ -87,6 +88,8 @@ func generateNetworkConfig(dir string, md Metadata) error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to write systemd-networkd configuration")
 		}
+
+		glog.V(4).Infof("Created systemd-networkd config %s: %s", fn, buf.String())
 	}
 
 	err = ioutil.WriteFile(filepath.Join(d, "init.sh"), []byte(networkInitScript), 0744)
