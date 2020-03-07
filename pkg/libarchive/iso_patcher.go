@@ -17,9 +17,9 @@ limitations under the License.
 package libarchive
 
 import (
-	"fmt"
 	"os"
 
+	"github.com/golang/glog"
 	"github.com/pkg/errors"
 )
 
@@ -64,7 +64,7 @@ func PatchISO(source string, dest string, files map[string]string) error {
 			return errors.Wrapf(err, "failed to write entry %s", e.GetPathName())
 		}
 
-		fmt.Printf("file mode: %s mode is %d\n", e.GetPathName(), e.GetMode() &ModeMask)
+		glog.V(4).Infof("Wrote file %s with mode %d", e.GetPathName(), e.GetMode()&ModeMask)
 		_, err = output.CopyFrom(input, e.GetSize())
 		if err != nil {
 			return errors.Wrapf(err, "failed to copy entry %s from %s", e.GetPathName(), source)
@@ -109,7 +109,7 @@ func PatchISO(source string, dest string, files map[string]string) error {
 				return errors.Wrapf(err, "unable to read data from %s", source)
 			}
 
-			_, err = output.Write(buf[0 : n])
+			_, err = output.Write(buf[0:n])
 			if err != nil {
 				return err
 			}
