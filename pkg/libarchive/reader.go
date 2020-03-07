@@ -65,22 +65,22 @@ func (r *Reader) Open(filename string) error {
 	return nil
 }
 
-func (r *Reader) Read(size int64) ([]byte, error) {
+func (r *Reader) Read(size Size) ([]byte, error) {
 	var result []byte
 	if size > 0 {
 		buf := C.malloc(bufferSize)
 		defer C.free(buf)
 
-		var readBytes int64
+		var readBytes Size
 		readBytes = bufferSize
 		if size < readBytes {
 			readBytes = size
 		}
 
-		len := C.archive_read_data(r.ar, buf, C.ulonglong(readBytes))
+		len := SSize(C.archive_read_data(r.ar, buf, readBytes.ToC()))
 		for len > 0 {
 			goBuf := make([]byte, readBytes)
-			C.memcpy(unsafe.Pointer(&goBuf[0]), buf, C.ulonglong(readBytes))
+			C.memcpy(unsafe.Pointer(&goBuf[0]), buf, readBytes.ToC())
 			result = append(result, goBuf...)
 		}
 		if len < 0 {

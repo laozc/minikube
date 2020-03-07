@@ -63,11 +63,15 @@ func (e *Entry) GetMode() Mode {
 }
 
 func (e *Entry) SetMode(mode Mode) {
-	C.archive_entry_set_mode(e.entry, C.ushort(mode))
+	C.archive_entry_set_mode(e.entry, mode.ToC())
 }
 
-func (e *Entry) SetUserID(uid int32) {
-	C.archive_entry_set_uid(e.entry, C.longlong(uid))
+func (e *Entry) GetUserID() UserID {
+	return UserID(C.archive_entry_uid(e.entry))
+}
+
+func (e *Entry) SetUserID(uid UserID) {
+	C.archive_entry_set_uid(e.entry, uid.ToC())
 }
 
 func (e *Entry) SetUserName(uname string) {
@@ -76,8 +80,12 @@ func (e *Entry) SetUserName(uname string) {
 	C.archive_entry_set_uname(e.entry, cstr)
 }
 
-func (e *Entry) SetGroupID(gid int32) {
-	C.archive_entry_set_gid(e.entry, C.longlong(gid))
+func (e *Entry) GetGroupID() GroupID {
+	return GroupID(C.archive_entry_gid(e.entry))
+}
+
+func (e *Entry) SetGroupID(gid GroupID) {
+	C.archive_entry_set_gid(e.entry, gid.ToC())
 }
 
 func (e *Entry) SetGroupName(gname string) {
@@ -93,13 +101,12 @@ func (e *Entry) Free() {
 	}
 }
 
-func (e *Entry) GetSize() int64 {
-	return int64(C.archive_entry_size(e.entry))
+func (e *Entry) GetSize() SSize {
+	return SSize(C.archive_entry_size(e.entry))
 }
 
-func (e *Entry) SetSize(size int64) {
-	u := C.longlong(size)
-	C.archive_entry_set_size(e.entry, u)
+func (e *Entry) SetSize(size SSize) {
+	C.archive_entry_set_size(e.entry, size.ToC())
 }
 
 func (e *Entry) GetAccessTime() *time.Time {
@@ -107,9 +114,9 @@ func (e *Entry) GetAccessTime() *time.Time {
 		return nil
 	}
 
-	atime := C.archive_entry_atime(e.entry)
-	atimeNanos := C.archive_entry_atime_nsec(e.entry)
-	t := toGoTime(atime, atimeNanos)
+	atime := UnixTime(C.archive_entry_atime(e.entry))
+	atimeNanos := Nanosecond(C.archive_entry_atime_nsec(e.entry))
+	t := time.Time(NewTimeWithNanosecond(atime, atimeNanos))
 	return &t
 }
 
@@ -119,8 +126,8 @@ func (e *Entry) SetAccessTime(t *time.Time) {
 		return
 	}
 
-	tm, nsec := fromGoTime(*t)
-	C.archive_entry_set_atime(e.entry, tm, nsec)
+	tm, nsec := TimeWithNanosecond(*t).ToC()
+	C.archive_entry_set_atime(e.entry, tm.ToC(), nsec.ToC())
 }
 
 func (e *Entry) GetModifiedTime() *time.Time {
@@ -128,9 +135,9 @@ func (e *Entry) GetModifiedTime() *time.Time {
 		return nil
 	}
 
-	atime := C.archive_entry_mtime(e.entry)
-	atimeNanos := C.archive_entry_mtime_nsec(e.entry)
-	t := toGoTime(atime, atimeNanos)
+	atime := UnixTime(C.archive_entry_mtime(e.entry))
+	atimeNanos := Nanosecond(C.archive_entry_mtime_nsec(e.entry))
+	t := time.Time(NewTimeWithNanosecond(atime, atimeNanos))
 	return &t
 }
 
@@ -140,6 +147,6 @@ func (e *Entry) SetModifiedTime(t *time.Time) {
 		return
 	}
 
-	tm, nsec := fromGoTime(*t)
-	C.archive_entry_set_mtime(e.entry, tm, nsec)
+	tm, nsec := TimeWithNanosecond(*t).ToC()
+	C.archive_entry_set_mtime(e.entry, tm.ToC(), nsec.ToC())
 }

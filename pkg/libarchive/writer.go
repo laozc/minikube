@@ -34,10 +34,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-const (
-	bufferSize = 8192
-)
-
 type Writer struct {
 	ar *C.struct_archive
 }
@@ -79,7 +75,7 @@ func (r *Writer) SetOptions(options []string) error {
 	cstr := C.CString(strings.Join(options, ","))
 	defer C.free(unsafe.Pointer(cstr))
 	if C.archive_write_set_options(r.ar, cstr) != C.ARCHIVE_OK {
-		return  errors.Errorf("couldn't set options")
+		return errors.Errorf("couldn't set options")
 	}
 	return nil
 }
@@ -101,12 +97,11 @@ func (r *Writer) WriteEntry(entry *Entry) error {
 	return nil
 }
 
-
-func (r *Writer) Write(data []byte) (int64, error) {
-	var written int64
+func (r *Writer) Write(data []byte) (SSize, error) {
+	var written SSize
 	len := len(data)
 	if len > 0 {
-		r := C.archive_write_data(r.ar, unsafe.Pointer(&data[0]), C.ulonglong(len))
+		r := SSize(C.archive_write_data(r.ar, unsafe.Pointer(&data[0]), Size(len).ToC()))
 		if int(r) != len {
 			return written, errors.Errorf("error writing data to output archive")
 		}
@@ -115,20 +110,20 @@ func (r *Writer) Write(data []byte) (int64, error) {
 	return written, nil
 }
 
-func (r *Writer) CopyFrom(reader *Reader, size int64) (int64, error) {
-	var written int64
+func (r *Writer) CopyFrom(reader *Reader, size SSize) (SSize, error) {
+	var written SSize
 	if size > 0 {
 		buf := C.malloc(bufferSize)
 		defer C.free(buf)
 
-		len := C.archive_read_data(reader.ar, buf, bufferSize)
+		len := SSize(C.archive_read_data(reader.ar, buf, bufferSize))
 		for len > 0 {
-			if C.archive_write_data(r.ar, buf, C.ulonglong(len)) != len {
+			if SSize(C.archive_write_data(r.ar, buf, Size(len).ToC())) != len {
 				return written, errors.Errorf("error writing data to output archive")
 			}
 
-			written += int64(len)
-			len = C.archive_read_data(reader.ar, buf, bufferSize)
+			written += len
+			len = SSize(C.archive_read_data(reader.ar, buf, bufferSize))
 		}
 		if len < 0 {
 			return written, errors.Errorf("error reading input archive")

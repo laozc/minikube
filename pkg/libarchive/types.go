@@ -16,6 +16,9 @@ limitations under the License.
 
 package libarchive
 
+import "C"
+import "time"
+
 const (
 	ModeMask = 0170000 /* These bits determine file type.  */
 
@@ -28,14 +31,41 @@ const (
 	ModeSocket          = 0140000 /* Socket.  */
 )
 
+const (
+	FormatISO9660 = iota
+)
+
+const (
+	bufferSize = 8192
+)
+
 type Mode uint32
 
 func (m Mode) IsRegular() bool {
 	return m&ModeMask == ModeRegularFile
 }
 
-const (
-	FormatISO9660 = iota
-)
+type UserID int64
+
+type GroupID int64
+
+type Size uint64
+
+type SSize int64
 
 type Format int
+
+type UnixTime int64
+
+type Nanosecond int64
+
+type TimeWithNanosecond time.Time
+
+func (tn TimeWithNanosecond) ToC() (UnixTime, Nanosecond) {
+	t := time.Time(tn)
+	return UnixTime(t.Unix()), Nanosecond(t.Nanosecond())
+}
+
+func NewTimeWithNanosecond(t UnixTime, ns Nanosecond) TimeWithNanosecond {
+	return TimeWithNanosecond(time.Unix(int64(t), int64(ns)))
+}

@@ -89,7 +89,7 @@ func PatchISO(source string, dest string, files map[string]string) error {
 			e.SetPathName(dest)
 			e.SetMode(ModeRegularFile | 0744)
 
-			e.SetSize(stat.Size())
+			e.SetSize(SSize(stat.Size()))
 			mt := stat.ModTime()
 			e.SetModifiedTime(&mt)
 			e.SetAccessTime(&mt)
