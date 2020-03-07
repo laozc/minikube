@@ -23,7 +23,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func PatchISO(source string, dest string, files map[string]string) error {
+func PatchISO(source string, dest string, files map[string]string, options []string) error {
 	input := NewReader()
 	err := input.Open(source)
 	if err != nil {
@@ -39,7 +39,7 @@ func PatchISO(source string, dest string, files map[string]string) error {
 
 	defer output.Close()
 
-	err = output.SetOptions([]string{"boot-type=no-emulation", "boot=isolinux/isolinux.bin", "boot-catalog=boot.catalog", "boot-load-size=4", "boot-info-table"})
+	err = output.SetOptions(options)
 	if err != nil {
 		return err
 	}

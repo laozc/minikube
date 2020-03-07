@@ -64,6 +64,8 @@ var (
 		vmpath.GuestCertAuthDir,
 		vmpath.GuestCertStoreDir,
 	}
+
+	isoDefaultOptions = []string{"boot-type=no-emulation", "boot=isolinux/isolinux.bin", "boot-catalog=boot.catalog", "boot-load-size=4", "boot-info-table"}
 )
 
 // StartHost starts a host VM.
@@ -166,7 +168,7 @@ func customizeISO(cfg *config.MachineConfig) error {
 
 		err = libarchive.PatchISO(isoPath, customizedISOPath, map[string]string{
 			mt.Name(): "/metadata.tar",
-		})
+		}, isoDefaultOptions)
 		if err != nil {
 			return err
 		}
