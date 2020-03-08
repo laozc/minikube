@@ -35,7 +35,7 @@ type switchType string
 type netAdapter struct {
 	InterfaceGUID        string `json:"interfaceGuid"`
 	InterfaceDescription string
-	InterfaceIndex       int    `json:"ifIndex"`
+	InterfaceIndex       int `json:"ifIndex"`
 }
 
 type vmSwitch struct {
