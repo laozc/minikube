@@ -96,12 +96,8 @@ else
 STORAGE_PROVISIONER_IMAGE ?= $(REGISTRY)/storage-provisioner-$(GOARCH):$(STORAGE_PROVISIONER_TAG)
 endif
 
-ifneq ($(GOOS),darwin)
-	EXT_LDFLAGS := -extldflags "-static"
-endif
-
 # Set the version information for the Kubernetes servers
-MINIKUBE_LDFLAGS := -X k8s.io/minikube/pkg/version.version=$(VERSION) -X k8s.io/minikube/pkg/version.isoVersion=$(ISO_VERSION) -X k8s.io/minikube/pkg/version.isoPath=$(ISO_BUCKET) -X k8s.io/minikube/pkg/version.gitCommitID=$(COMMIT) -linkmode "external" $(EXT_LDFLAGS)
+MINIKUBE_LDFLAGS := -X k8s.io/minikube/pkg/version.version=$(VERSION) -X k8s.io/minikube/pkg/version.isoVersion=$(ISO_VERSION) -X k8s.io/minikube/pkg/version.isoPath=$(ISO_BUCKET) -X k8s.io/minikube/pkg/version.gitCommitID=$(COMMIT) -linkmode "external"
 PROVISIONER_LDFLAGS := "$(MINIKUBE_LDFLAGS) -s -w"
 
 MINIKUBEFILES := ./cmd/minikube/
