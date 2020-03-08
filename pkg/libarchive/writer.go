@@ -16,14 +16,11 @@ limitations under the License.
 
 package libarchive
 
-import "C"
-
 // #cgo darwin CFLAGS: -I/usr/local/opt/libarchive/include
 /*
 #include <stdlib.h>
 #include <archive.h>
 #include <archive_entry.h>
-
 */
 import "C"
 import (
