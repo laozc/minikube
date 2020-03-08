@@ -16,8 +16,9 @@ limitations under the License.
 
 package libarchive
 
-// #cgo CFLAGS: -I./include -I/usr/local/opt/libarchive/include
-// #cgo LDFLAGS: -larchive -L/usr/local/opt/libarchive/lib
+// #cgo darwin CFLAGS: -I/usr/local/opt/libarchive/include
+// #cgo !darwin LDFLAGS: -larchive -lbcrypt -liconv -lexpat -lxml2 -lbz2 -llz4 -llzma -lz -lzstd
+// #cgo darwin LDFLAGS: -L/usr/local/opt/libarchive/lib -larchive
 //#include <stdlib.h>
 //#include <archive.h>
 //#include <archive_entry.h>

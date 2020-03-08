@@ -18,8 +18,7 @@ package libarchive
 
 import "C"
 
-// #cgo CFLAGS: -I./include -I/usr/local/opt/libarchive/include
-// #cgo LDFLAGS: -larchive
+// #cgo darwin CFLAGS: -I/usr/local/opt/libarchive/include
 /*
 #include <stdlib.h>
 #include <archive.h>
