@@ -25,6 +25,7 @@ package libarchive
 */
 import "C"
 import (
+	"io"
 	"unsafe"
 
 	"github.com/pkg/errors"
@@ -88,6 +89,33 @@ func (r *Reader) Read(size Size) ([]byte, error) {
 	}
 
 	return result, nil
+}
+
+func (r *Reader) CopyTo(writer io.Writer, size SSize) (SSize, error) {
+	var written SSize
+	if size > 0 {
+		buf := C.malloc(bufferSize)
+		defer C.free(buf)
+
+		len := SSize(C.archive_read_data(r.ar, buf, bufferSize))
+		for len > 0 {
+			goBuf := make([]byte, len)
+			C.memcpy(unsafe.Pointer(&goBuf[0]), buf, Size(len).ToC())
+
+			_, err := writer.Write(goBuf)
+			if err != nil {
+				return written, errors.Errorf("error writing data")
+			}
+
+			written += len
+			len = SSize(C.archive_read_data(r.ar, buf, bufferSize))
+		}
+		if len < 0 {
+			return written, errors.Errorf("error reading input archive")
+		}
+	}
+
+	return written, nil
 }
 
 func (r *Reader) NextEntry() (*Entry, error) {

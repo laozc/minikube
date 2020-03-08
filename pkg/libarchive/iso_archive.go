@@ -17,11 +17,77 @@ limitations under the License.
 package libarchive
 
 import (
+	"fmt"
 	"os"
+	"path/filepath"
+	"time"
 
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
 )
+
+func CreateISO(dest string, files map[string]string, options []string) error {
+	// creates an empty ISO
+	tmpName := fmt.Sprintf("%s.%s", dest, time.Now().Format("20060102150405"))
+	err := func() error {
+		output, err := NewWriter(FormatISO9660)
+		if err != nil {
+			return errors.Wrapf(err, "unable to open archive %s for writing", dest)
+		}
+
+		defer output.Close()
+
+		err = output.Open(tmpName)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}()
+	if err != nil {
+		return errors.Wrapf(err, "failed to create ISO archive %s", dest)
+	}
+
+	defer os.Remove(tmpName)
+
+	return PatchISO(tmpName, dest, files, options)
+}
+
+func ExtractISO(source string, dest string) error {
+	input := NewReader()
+	err := input.Open(source)
+	if err != nil {
+		return errors.Wrapf(err, "unable to open archive %s for reading", source)
+	}
+
+	defer input.Close()
+
+	for true {
+		e, err := input.NextEntry()
+		if err != nil {
+			return errors.Wrapf(err, "failed to get entry from %s", source)
+		}
+
+		if e == nil {
+			break
+		}
+
+		destPath := filepath.Join(dest, e.GetPathName()[1:])
+		f, err := os.OpenFile(destPath, os.O_WRONLY|os.O_CREATE, 0644)
+		if err != nil {
+			return errors.Wrapf(err, "failed to open file %s", destPath)
+		}
+
+		_, err = input.CopyTo(f, e.GetSize())
+		if err != nil {
+			return errors.Wrapf(err, "failed to copy entry %s from %s", e.GetPathName(), source)
+		}
+
+		glog.V(4).Infof("Wrote file %s with mode %d", destPath, e.GetMode()&ModeMask)
+	}
+
+	return nil
+}
 
 func PatchISO(source string, dest string, files map[string]string, options []string) error {
 	input := NewReader()
