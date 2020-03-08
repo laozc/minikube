@@ -25,6 +25,7 @@ package libarchive
 //#include <archive_entry.h>
 import "C"
 import (
+	"os"
 	"time"
 	"unsafe"
 )
@@ -66,6 +67,24 @@ func (e *Entry) GetMode() Mode {
 
 func (e *Entry) SetMode(mode Mode) {
 	C.archive_entry_set_mode(e.entry, mode.ToC())
+}
+
+func (e *Entry) GetFileType() FileType {
+	ft := C.archive_entry_filetype(e.entry)
+	return FileType(ft)
+}
+
+func (e *Entry) SetFileType(ft FileType) {
+	C.archive_entry_set_filetype(e.entry, ft.ToC())
+}
+
+func (e *Entry) GetPermission() os.FileMode {
+	perm := C.archive_entry_perm(e.entry)
+	return os.FileMode(Mode(perm))
+}
+
+func (e *Entry) SetPermission(perm os.FileMode) {
+	C.archive_entry_set_perm(e.entry, Mode(perm).ToC())
 }
 
 func (e *Entry) GetUserID() UserID {

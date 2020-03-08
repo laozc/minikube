@@ -72,8 +72,17 @@ func ExtractISO(source string, dest string) error {
 			break
 		}
 
-		destPath := filepath.Join(dest, e.GetPathName()[1:])
-		f, err := os.OpenFile(destPath, os.O_WRONLY|os.O_CREATE, 0644)
+		if !e.GetMode().IsRegular() {
+			continue
+		}
+
+		destPath := filepath.Join(dest, e.GetPathName())
+		err = os.MkdirAll(filepath.Dir(destPath), 0755)
+		if err != nil {
+			return err
+		}
+
+		f, err := os.OpenFile(destPath, os.O_WRONLY|os.O_CREATE, e.GetMode().GetPermission())
 		if err != nil {
 			return errors.Wrapf(err, "failed to open file %s", destPath)
 		}
@@ -83,7 +92,7 @@ func ExtractISO(source string, dest string) error {
 			return errors.Wrapf(err, "failed to copy entry %s from %s", e.GetPathName(), source)
 		}
 
-		glog.V(4).Infof("Wrote file %s with mode %d", destPath, e.GetMode()&ModeMask)
+		glog.V(4).Infof("Extracted file %s with mode %d", destPath, e.GetMode()&ModeMask)
 	}
 
 	return nil
@@ -153,7 +162,8 @@ func PatchISO(source string, dest string, files map[string]string, options []str
 			defer e.Free()
 
 			e.SetPathName(dest)
-			e.SetMode(ModeRegularFile | 0744)
+			e.SetFileType(ModeRegularFile)
+			e.SetPermission(stat.Mode() & os.ModePerm)
 
 			e.SetSize(SSize(stat.Size()))
 			mt := stat.ModTime()

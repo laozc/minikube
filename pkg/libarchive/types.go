@@ -17,7 +17,10 @@ limitations under the License.
 package libarchive
 
 import "C"
-import "time"
+import (
+	"os"
+	"time"
+)
 
 const (
 	ModeMask = 0170000 /* These bits determine file type.  */
@@ -42,7 +45,26 @@ const (
 type Mode uint32
 
 func (m Mode) IsRegular() bool {
-	return m&ModeMask == ModeRegularFile
+	return m.GetFileType().IsRegular()
+}
+
+func (m Mode) GetFileType() FileType {
+	return FileType(m & ModeMask)
+}
+
+func (m Mode) GetPermission() os.FileMode {
+	n := ^ModeMask
+	return os.FileMode(uint32(n) & uint32(m))
+}
+
+type FileType uint32
+
+func (ft FileType) IsRegular() bool {
+	return ft == ModeRegularFile
+}
+
+func (ft FileType) ToC() C.uint {
+	return C.uint(ft)
 }
 
 type UserID int64
