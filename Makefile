@@ -99,6 +99,7 @@ endif
 # Set the version information for the Kubernetes servers
 MINIKUBE_LDFLAGS := -X k8s.io/minikube/pkg/version.version=$(VERSION) -X k8s.io/minikube/pkg/version.isoVersion=$(ISO_VERSION) -X k8s.io/minikube/pkg/version.isoPath=$(ISO_BUCKET) -X k8s.io/minikube/pkg/version.gitCommitID=$(COMMIT) -linkmode "external"
 PROVISIONER_LDFLAGS := "$(MINIKUBE_LDFLAGS) -s -w"
+ISO_ARCHIVER_LDFLAGS := -X k8s.io/minikube/pkg/version.version=$(VERSION) -X k8s.io/minikube/pkg/version.gitCommitID=$(COMMIT) -linkmode "external"
 
 MINIKUBEFILES := ./cmd/minikube/
 HYPERKIT_FILES := ./cmd/drivers/hyperkit
@@ -185,6 +186,26 @@ ifeq ($(MINIKUBE_BUILD_IN_DOCKER),y)
 else
 	GOOS="$(firstword $(subst -, ,$*))" GOARCH="$(lastword $(subst -, ,$(subst $(IS_EXE), ,$*)))" \
 	go build -tags "$(MINIKUBE_BUILD_TAGS)" -ldflags="$(MINIKUBE_LDFLAGS)" -a -o $@ k8s.io/minikube/cmd/minikube
+endif
+
+out/iso-archiver-windows-amd64.exe: out/iso-archiver-windows-amd64
+	cp $< $@
+
+out/iso-archiver-linux-x86_64: out/iso-archiver-linux-amd64
+	cp $< $@
+
+out/iso-archiver-linux-aarch64: out/iso-archiver-linux-arm64
+	cp $< $@
+
+.PHONY: iso-archiver-%
+iso-archiver-%: out/$@
+
+out/iso-archiver-%: $(SOURCE_GENERATED) $(SOURCE_FILES)
+ifeq ($(MINIKUBE_BUILD_IN_DOCKER),y)
+	$(call DOCKER,$(BUILD_IMAGE),/usr/bin/make $@)
+else
+	GOOS="$(firstword $(subst -, ,$*))" GOARCH="$(lastword $(subst -, ,$(subst $(IS_EXE), ,$*)))" \
+	go build -tags "$(MINIKUBE_BUILD_TAGS)" -ldflags="$(ISO_ARCHIVER_LDFLAGS)" -a -o $@ k8s.io/minikube/cmd/iso-archiver
 endif
 
 .PHONY: e2e-linux-amd64 e2e-darwin-amd64 e2e-windows-amd64.exe
