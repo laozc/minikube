@@ -97,9 +97,12 @@ STORAGE_PROVISIONER_IMAGE ?= $(REGISTRY)/storage-provisioner-$(GOARCH):$(STORAGE
 endif
 
 # Set the version information for the Kubernetes servers
+ifeq ($(GOOS),linux)
+STATIC_LDFLAGS := -extldflags "-Wl,-dynamic-linker=/lib64/ld-linux-x86-64.so.2"
+endif
 MINIKUBE_LDFLAGS := -X k8s.io/minikube/pkg/version.version=$(VERSION) -X k8s.io/minikube/pkg/version.isoVersion=$(ISO_VERSION) -X k8s.io/minikube/pkg/version.isoPath=$(ISO_BUCKET) -X k8s.io/minikube/pkg/version.gitCommitID=$(COMMIT) -linkmode "external"
 PROVISIONER_LDFLAGS := "$(MINIKUBE_LDFLAGS) -s -w"
-ISO_ARCHIVER_LDFLAGS := -X k8s.io/minikube/pkg/version.version=$(VERSION) -X k8s.io/minikube/pkg/version.gitCommitID=$(COMMIT) -linkmode "external"
+ISO_ARCHIVER_LDFLAGS := -X k8s.io/minikube/pkg/version.version=$(VERSION) -X k8s.io/minikube/pkg/version.gitCommitID=$(COMMIT) -linkmode "external" $(STATIC_LDFLAGS)
 
 MINIKUBEFILES := ./cmd/minikube/
 HYPERKIT_FILES := ./cmd/drivers/hyperkit
