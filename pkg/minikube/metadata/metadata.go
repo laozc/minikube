@@ -17,11 +17,16 @@ limitations under the License.
 package metadata
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
+	"strings"
 
+	"github.com/golang/glog"
 	"github.com/pkg/errors"
 
 	"k8s.io/minikube/pkg/util"
@@ -78,6 +83,40 @@ func CreateMetadataTar(fp string, md Metadata) error {
 	err = util.CreateTarArchive(f, tmpDir, false)
 	if err != nil {
 		return errors.Wrapf(err, "failed to create metadata tar file %s", fp)
+	}
+
+	return nil
+}
+
+func getISOArchiverBinaryName() string {
+	name := fmt.Sprintf("iso-archiver-%s-%s", runtime.GOOS, runtime.GOARCH)
+	if runtime.GOOS == "windows" {
+		name += ".exe"
+	}
+	return name
+}
+
+func SupportsPatch() (bool, error) {
+	isoArchiverBinary := getISOArchiverBinaryName()
+	_, err := exec.LookPath(isoArchiverBinary)
+	if err != nil {
+		glog.V(4).Infof("Unable to find platform-specific iso-archiver binary %s.", isoArchiverBinary)
+	}
+	return err == nil, err
+}
+
+func PatchISO(isoPath, baseDir, outISO string, options []string) error {
+	_, err := SupportsPatch()
+	if err != nil {
+		return errors.Wrapf(err, "Unable to find platform-specific iso-archiver binary %s", getISOArchiverBinaryName)
+	}
+
+	glog.V(4).Infof("Patching ISO %s...", isoPath)
+	binary := getISOArchiverBinaryName()
+	cmd := exec.Command(binary, "patch", "--source", isoPath, "--base-dir", baseDir, "--out", outISO, "--options", strings.Join(options, ","))
+	err = cmd.Run()
+	if err != nil {
+		return errors.Wrapf(err, "failed to patch ISO")
 	}
 
 	return nil

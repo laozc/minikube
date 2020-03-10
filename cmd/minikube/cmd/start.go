@@ -987,6 +987,11 @@ func incrementIP(startIP net.IP, ipNet net.IPNet) (net.IP, error) {
 
 // getMetadataCustomizers returns metadata customizers based on driver and flags
 func getMetadataCustomizers(cmd *cobra.Command, k8sVersion string, drvName string) ([]string, metadata.Metadata, error) {
+	supports, _ := metadata.SupportsPatch()
+	if !supports {
+		return nil, metadata.Metadata{}, nil
+	}
+
 	if drvName == driver.HyperV {
 		hypervNatCIDR := viper.GetString(HypervNatCIDR)
 		gatewayIP, ipNet, err := net.ParseCIDR(hypervNatCIDR)

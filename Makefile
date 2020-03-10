@@ -100,7 +100,7 @@ endif
 ifeq ($(GOOS),linux)
 STATIC_LDFLAGS := -extldflags "-Wl,-dynamic-linker=/lib64/ld-linux-x86-64.so.2"
 endif
-MINIKUBE_LDFLAGS := -X k8s.io/minikube/pkg/version.version=$(VERSION) -X k8s.io/minikube/pkg/version.isoVersion=$(ISO_VERSION) -X k8s.io/minikube/pkg/version.isoPath=$(ISO_BUCKET) -X k8s.io/minikube/pkg/version.gitCommitID=$(COMMIT) -linkmode "external"
+MINIKUBE_LDFLAGS := -X k8s.io/minikube/pkg/version.version=$(VERSION) -X k8s.io/minikube/pkg/version.isoVersion=$(ISO_VERSION) -X k8s.io/minikube/pkg/version.isoPath=$(ISO_BUCKET) -X k8s.io/minikube/pkg/version.gitCommitID=$(COMMIT)
 PROVISIONER_LDFLAGS := "$(MINIKUBE_LDFLAGS) -s -w"
 ISO_ARCHIVER_LDFLAGS := -X k8s.io/minikube/pkg/version.version=$(VERSION) -X k8s.io/minikube/pkg/version.gitCommitID=$(COMMIT) -linkmode "external" $(STATIC_LDFLAGS)
 

@@ -35,7 +35,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 
-	"k8s.io/minikube/pkg/libarchive"
 	"k8s.io/minikube/pkg/minikube/command"
 	"k8s.io/minikube/pkg/minikube/config"
 	"k8s.io/minikube/pkg/minikube/constants"
@@ -114,24 +113,22 @@ func customizeISO(cfg *config.MachineConfig, md metadata.Metadata) error {
 	}
 
 	err = func() error {
-		mt, err := ioutil.TempFile("", "metadata*.tar")
+		tmpDir, err := ioutil.TempDir("", "metadata_iso.*")
 		if err != nil {
 			return err
 		}
 
-		mt.Close()
-		defer os.Remove(mt.Name())
+		defer os.RemoveAll(tmpDir)
 
-		err = metadata.CreateMetadataTar(mt.Name(), md)
+		mt := filepath.Join(tmpDir, "metadata.tar")
+		err = metadata.CreateMetadataTar(mt, md)
 		if err != nil {
 			return errors.Wrapf(err, "failed to create metadata tar file")
 		}
 
-		err = libarchive.PatchISO(isoPath, customizedISOPath, map[string]string{
-			mt.Name(): "/metadata.tar",
-		}, isoDefaultOptions)
+		err = metadata.PatchISO(isoPath, tmpDir, customizedISOPath, isoDefaultOptions)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "failed to patch ISO")
 		}
 
 		return nil
