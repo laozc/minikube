@@ -52,6 +52,7 @@ import (
 	"k8s.io/minikube/pkg/minikube/kubeconfig"
 	"k8s.io/minikube/pkg/minikube/localpath"
 	"k8s.io/minikube/pkg/minikube/machine"
+	"k8s.io/minikube/pkg/minikube/metadata"
 	"k8s.io/minikube/pkg/minikube/node"
 	"k8s.io/minikube/pkg/minikube/notify"
 	"k8s.io/minikube/pkg/minikube/out"
@@ -771,6 +772,12 @@ func generateCfgFromFlags(cmd *cobra.Command, k8sVersion string, drvName string)
 		out.T(out.SuccessType, "Using image repository {{.name}}", out.V{"name": repository})
 	}
 
+	// Checks if metadata customization is needed
+	customizers, metadata, err := getMetadataCustomizers(cmd, k8sVersion, drvName)
+	if err != nil {
+		return config.MachineConfig{}, config.Node{}, err
+	}
+
 	var kubeNodeName string
 	if drvName != driver.None {
 		kubeNodeName = viper.GetString(config.MachineProfile)
@@ -796,10 +803,7 @@ func generateCfgFromFlags(cmd *cobra.Command, k8sVersion string, drvName string)
 		Driver:                  drvName,
 		HyperkitVpnKitSock:      viper.GetString(vpnkitSock),
 		HyperkitVSockPorts:      viper.GetStringSlice(vsockPorts),
-		NFSShare:                viper.GetStringSlice(nfsShare),
-		NFSSharesRoot:           viper.GetString(nfsSharesRoot),
 		DockerEnv:               node.DockerEnv,
-		DockerOpt:               node.DockerOpt,
 		InsecureRegistry:        insecureRegistry,
 		RegistryMirror:          registryMirror,
 		HostOnlyCIDR:            viper.GetString(hostOnlyCIDR),
@@ -814,7 +818,10 @@ func generateCfgFromFlags(cmd *cobra.Command, k8sVersion string, drvName string)
 		KVMGPU:                  viper.GetBool(kvmGPU),
 		KVMHidden:               viper.GetBool(kvmHidden),
 		Downloader:              pkgutil.DefaultDownloader{},
+		DockerOpt:               node.DockerOpt,
 		DisableDriverMounts:     viper.GetBool(disableDriverMounts),
+		NFSShare:                viper.GetStringSlice(nfsShare),
+		NFSSharesRoot:           viper.GetString(nfsSharesRoot),
 		UUID:                    viper.GetString(uuid),
 		NoVTXCheck:              viper.GetBool(noVTXCheck),
 		DNSProxy:                viper.GetBool(dnsProxy),
@@ -840,7 +847,9 @@ func generateCfgFromFlags(cmd *cobra.Command, k8sVersion string, drvName string)
 			LoadBalancerStartIP:    viper.GetString(loadBalancerStartIP),
 			LoadBalancerEndIP:      viper.GetString(loadBalancerEndIP),
 		},
-		Nodes: []config.Node{cp},
+		Nodes:               []config.Node{cp},
+		MetadataCustomizers: customizers,
+		Metadata:            metadata,
 	}
 	return cfg, cp, nil
 }
@@ -958,4 +967,54 @@ func getKubernetesVersion(old *config.MachineConfig) string {
 		out.T(out.ThumbsUp, "Kubernetes {{.new}} is now available. If you would like to upgrade, specify: --kubernetes-version={{.new}}", out.V{"new": defaultVersion})
 	}
 	return nv
+}
+
+// guess next IP of the sub network
+func incrementIP(startIP net.IP, ipNet net.IPNet) (net.IP, error) {
+	ip := make(net.IP, len(startIP))
+	copy(ip, startIP)
+	for i := len(ip) - 1; i >= 0; i-- {
+		ip[i]++
+		if ip[i] != 0 {
+			break
+		}
+	}
+	if !ipNet.Contains(ip) {
+		return nil, errors.New("overflowed CIDR while incrementing IP")
+	}
+	return ip, nil
+}
+
+// getMetadataCustomizers returns metadata customizers based on driver and flags
+func getMetadataCustomizers(cmd *cobra.Command, k8sVersion string, drvName string) ([]string, metadata.Metadata, error) {
+	if drvName == driver.HyperV {
+		hypervNatCIDR := viper.GetString(HypervNatCIDR)
+		gatewayIP, ipNet, err := net.ParseCIDR(hypervNatCIDR)
+		if err != nil {
+			return nil, metadata.Metadata{}, errors.Wrapf(err, "specified CIDR %s is not valid", hypervNatCIDR)
+		}
+
+		nextIP, err := incrementIP(gatewayIP, *ipNet)
+		if err != nil {
+			return nil, metadata.Metadata{}, err
+		}
+
+		hypervDNSServers := viper.GetStringSlice(HypervDNSServers)
+		md := metadata.Metadata{
+			Networks: map[string]metadata.Network{
+				metadata.DefaultNetworkInterface: {
+					MachineIPNet: net.IPNet{
+						IP:   nextIP,
+						Mask: ipNet.Mask,
+					},
+					GatewayIP: gatewayIP,
+					DNS:       hypervDNSServers,
+					ForceIPv4: true,
+				},
+			}}
+
+		return []string{"network"}, md, nil
+	}
+
+	return nil, metadata.Metadata{}, nil
 }

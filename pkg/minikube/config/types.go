@@ -20,6 +20,7 @@ import (
 	"net"
 
 	"github.com/blang/semver"
+	"k8s.io/minikube/pkg/minikube/metadata"
 	"k8s.io/minikube/pkg/util"
 )
 
@@ -70,6 +71,8 @@ type MachineConfig struct {
 	KubernetesConfig        KubernetesConfig
 	Nodes                   []Node
 	Addons                  map[string]bool
+	MetadataCustomizers     []string // used by VM metadata customization
+	Metadata                metadata.Metadata
 }
 
 // KubernetesConfig contains the parameters used to configure the VM Kubernetes.

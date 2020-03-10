@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"net"
 	"os"
 	"os/exec"
 	"path"
@@ -104,24 +103,8 @@ func engineOptions(cfg config.MachineConfig) *engine.Options {
 	return &o
 }
 
-// guess next IP of the sub network
-func incrementIP(startIP net.IP, ipNet net.IPNet) (net.IP, error) {
-	ip := make(net.IP, len(startIP))
-	copy(ip, startIP)
-	for i := len(ip) - 1; i >= 0; i-- {
-		ip[i]++
-		if ip[i] != 0 {
-			break
-		}
-	}
-	if !ipNet.Contains(ip) {
-		return nil, errors.New("overflowed CIDR while incrementing IP")
-	}
-	return ip, nil
-}
-
 // customize ISO to include initialization metadata for each host VM
-func customizeISO(cfg *config.MachineConfig) error {
+func customizeISO(cfg *config.MachineConfig, md metadata.Metadata) error {
 	isoPath := cfg.Downloader.GetISOCacheFilepath(cfg.MinikubeISO)
 	customizedISOPath := filepath.Join(localpath.MiniPath(), "machines", cfg.Name, filepath.Base(isoPath))
 
@@ -130,28 +113,6 @@ func customizeISO(cfg *config.MachineConfig) error {
 		return err
 	}
 
-	gatewayIP, ipNet, err := net.ParseCIDR(cfg.HypervNatCIDR)
-	if err != nil {
-		return errors.Wrapf(err, "specified CIDR %s is not valid", cfg.HypervNatCIDR)
-	}
-
-	nextIP, err := incrementIP(gatewayIP, *ipNet)
-	if err != nil {
-		return err
-	}
-
-	md := metadata.Metadata{
-		Networks: map[string]metadata.Network{
-			metadata.DefaultNetworkInterface: {
-				MachineIPNet: net.IPNet{
-					IP:   nextIP,
-					Mask: ipNet.Mask,
-				},
-				GatewayIP: gatewayIP,
-				DNS:       cfg.HypervNatDNSServers,
-				ForceIPv4: true,
-			},
-		}}
 	err = func() error {
 		mt, err := ioutil.TempFile("", "metadata*.tar")
 		if err != nil {
@@ -201,9 +162,11 @@ func createHost(api libmachine.API, cfg config.MachineConfig) (*host.Host, error
 	if def.Empty() {
 		return nil, fmt.Errorf("unsupported/missing driver: %s", cfg.Driver)
 	}
-	err := customizeISO(&cfg)
-	if err != nil {
-		return nil, errors.Wrap(err, "customize ISO")
+	if len(cfg.MetadataCustomizers) > 0 {
+		err := customizeISO(&cfg, cfg.Metadata)
+		if err != nil {
+			return nil, errors.Wrap(err, "customize ISO")
+		}
 	}
 	dd, err := def.Config(cfg)
 	if err != nil {
