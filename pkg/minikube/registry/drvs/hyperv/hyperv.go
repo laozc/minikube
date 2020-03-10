@@ -72,7 +72,7 @@ func configure(config cfg.MachineConfig) (interface{}, error) {
 			}
 			d.VSwitch = switchName
 
-		} else {
+		} else if config.HypervUseNAT {
 			// use internal switch
 			internalSwitchName := strings.Join([]string{config.Name, "nat", "switch"}, "-")
 			natNetworkName := strings.Join([]string{config.Name, "nat", "network"}, "-")

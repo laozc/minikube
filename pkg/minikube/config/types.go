@@ -48,6 +48,7 @@ type MachineConfig struct {
 	HostOnlyCIDR            string // Only used by the virtualbox driver
 	HypervVirtualSwitch     string
 	HypervUseExternalSwitch bool
+	HypervUseNAT            bool
 	HypervExternalAdapter   string
 	HypervNatCIDR           string
 	HypervNatDNSServers     []string

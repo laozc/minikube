@@ -77,6 +77,7 @@ const (
 	enableDefaultCNI        = "enable-default-cni"
 	hypervVirtualSwitch     = "hyperv-virtual-switch"
 	hypervUseExternalSwitch = "hyperv-use-external-switch"
+	hypervUseNAT            = "hyperv-use-nat"
 	hypervExternalAdapter   = "hyperv-external-adapter"
 	HypervNatCIDR           = "hyperv-nat-cidr"
 	HypervDNSServers        = "hyperv-dns-servers"
@@ -222,6 +223,7 @@ func initDriverFlags() {
 	// hyperv
 	startCmd.Flags().String(hypervVirtualSwitch, "", "The hyperv virtual switch name. Defaults to first found. (hyperv driver only)")
 	startCmd.Flags().Bool(hypervUseExternalSwitch, false, "Whether to use external switch over Default Switch if virtual switch not explicitly specified. (hyperv driver only)")
+	startCmd.Flags().Bool(hypervUseNAT, false, "Whether to use internal switch with NAT over Default Switch if NAT is applicable. (hyperv driver only)")
 	startCmd.Flags().String(hypervExternalAdapter, "", "External Adapter on which external switch will be created if no external switch is found. (hyperv driver only)")
 	startCmd.Flags().String(HypervNatCIDR, constants.DefaultHypervNatCIDR, fmt.Sprintf("the CIDR to be used for Hyper-V allocating NAT networks, where the IP address represents the Gateway. (hyperv driver only, defaults to %s)", constants.DefaultHypervNatCIDR))
 	startCmd.Flags().StringSlice(HypervDNSServers, constants.DefaultHypervDNSServers, fmt.Sprintf("a list of DNS to be used to configure Hyper-V virtual NIC. (hyperv driver only)"))
@@ -803,6 +805,7 @@ func generateCfgFromFlags(cmd *cobra.Command, k8sVersion string, drvName string)
 		HostOnlyCIDR:            viper.GetString(hostOnlyCIDR),
 		HypervVirtualSwitch:     viper.GetString(hypervVirtualSwitch),
 		HypervUseExternalSwitch: viper.GetBool(hypervUseExternalSwitch),
+		HypervUseNAT:            viper.GetBool(hypervUseNAT),
 		HypervExternalAdapter:   viper.GetString(hypervExternalAdapter),
 		HypervNatCIDR:           viper.GetString(HypervNatCIDR),
 		HypervNatDNSServers:     viper.GetStringSlice(HypervDNSServers),
