@@ -155,15 +155,15 @@ func createHost(api libmachine.API, cfg config.MachineConfig) (*host.Host, error
 			To disable this message, run [minikube config set ShowDriverDeprecationNotification false]`)
 	}
 	showHostInfo(cfg)
-	def := registry.Driver(cfg.Driver)
-	if def.Empty() {
-		return nil, fmt.Errorf("unsupported/missing driver: %s", cfg.Driver)
-	}
 	if len(cfg.MetadataCustomizers) > 0 {
 		err := customizeISO(&cfg, cfg.Metadata)
 		if err != nil {
 			return nil, errors.Wrap(err, "customize ISO")
 		}
+	}
+	def := registry.Driver(cfg.Driver)
+	if def.Empty() {
+		return nil, fmt.Errorf("unsupported/missing driver: %s", cfg.Driver)
 	}
 	dd, err := def.Config(cfg)
 	if err != nil {
