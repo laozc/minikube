@@ -50,6 +50,18 @@ type Driver struct {
 	// The name of the private network
 	PrivateNetwork string
 
+	// The Gateway IP of the private network
+	PrivateNetworkGatewayIP string
+
+	// The subnet mask of the private network
+	PrivateNetworkMask string
+
+	// The start IP of the private network
+	PrivateNetworkStartIP string
+
+	// The end IP of the private network
+	PrivateNetworkEndIP string
+
 	// The size of the disk to be created for the VM, in MB
 	DiskSize int
 
@@ -87,6 +99,10 @@ const (
 	qemusystem                = "qemu:///system"
 	defaultPrivateNetworkName = "minikube-net"
 	defaultNetworkName        = "default"
+	defaultNetworkGatewayIP   = "192.168.39.1"
+	defaultNetworkMask        = "255.255.255.0"
+	defaultNetworkStartIP     = "192.168.39.2"
+	defaultNetworkEndIP       = "192.168.39.254"
 )
 
 // NewDriver creates a new driver for a host
