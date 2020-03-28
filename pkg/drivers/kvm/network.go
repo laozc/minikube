@@ -36,11 +36,11 @@ import (
 // https://play.golang.org/p/m8TNTtygK0
 const networkTmpl = `
 <network>
-  <name>{{.PrivateNetwork}}</name>
+  <name>{{.Name}}</name>
   <dns enable='no'/>
-  <ip address='192.168.39.1' netmask='255.255.255.0'>
+  <ip address='{{.GatewayIP}}' netmask='{{.Netmask}}'>
     <dhcp>
-      <range start='192.168.39.2' end='192.168.39.254'/>
+      <range start='{{.StartIP}}' end='{{.EndIP}}'/>
     </dhcp>
   </ip>
 </network>
@@ -128,9 +128,36 @@ func (d *Driver) createNetwork() error {
 	// Only create the private network if it does not already exist
 	if _, err := conn.LookupNetworkByName(d.PrivateNetwork); err != nil {
 		// create the XML for the private network from our networkTmpl
+		networkName := d.PrivateNetwork
+		gatewayIP := d.PrivateNetworkGatewayIP
+		netmask := d.PrivateNetworkMask
+		startIP := d.PrivateNetworkStartIP
+		endIP := d.PrivateNetworkEndIP
+		if networkName == "" {
+			networkName = defaultPrivateNetworkName
+		}
+		if gatewayIP == "" || netmask == "" {
+			gatewayIP = defaultNetworkGatewayIP
+			netmask = defaultNetworkMask
+			startIP = defaultNetworkStartIP
+			endIP = defaultNetworkEndIP
+		}
+		network := struct {
+			Name      string
+			GatewayIP string
+			Netmask   string
+			StartIP   string
+			EndIP     string
+		}{
+			Name:      networkName,
+			GatewayIP: gatewayIP,
+			Netmask:   netmask,
+			StartIP:   startIP,
+			EndIP:     endIP,
+		}
 		tmpl := template.Must(template.New("network").Parse(networkTmpl))
 		var networkXML bytes.Buffer
-		if err := tmpl.Execute(&networkXML, d); err != nil {
+		if err := tmpl.Execute(&networkXML, network); err != nil {
 			return errors.Wrap(err, "executing network template")
 		}
 
