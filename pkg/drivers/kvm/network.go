@@ -34,17 +34,19 @@ import (
 
 // Replace with hardcoded range with CIDR
 // https://play.golang.org/p/m8TNTtygK0
-const networkTmpl = `
+var networkTmpl = template.Must(template.New("network").Parse(`
 <network>
   <name>{{.Name}}</name>
   <dns enable='no'/>
   <ip address='{{.GatewayIP}}' netmask='{{.Netmask}}'>
+{{- if (and (not (eq .StartIP "")) (not (eq .EndIP ""))) }}
     <dhcp>
       <range start='{{.StartIP}}' end='{{.EndIP}}'/>
     </dhcp>
+{{ end -}}
   </ip>
 </network>
-`
+`))
 
 // setupNetwork ensures that the network with `name` is started (active)
 // and has the autostart feature set.
@@ -155,9 +157,8 @@ func (d *Driver) createNetwork() error {
 			StartIP:   startIP,
 			EndIP:     endIP,
 		}
-		tmpl := template.Must(template.New("network").Parse(networkTmpl))
 		var networkXML bytes.Buffer
-		if err := tmpl.Execute(&networkXML, network); err != nil {
+		if err := networkTmpl.Execute(&networkXML, network); err != nil {
 			return errors.Wrap(err, "executing network template")
 		}
 
