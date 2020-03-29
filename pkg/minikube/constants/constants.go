@@ -54,6 +54,15 @@ const (
 	// DefaultHypervNatCIDR is the CIDR to be used for Hyper-V allocating NAT networks, where the IP address represents the Gateway
 	DefaultHypervNatCIDR = "192.168.88.1/24"
 
+	// DefaultKVMPrivateNetworkGatewayIP is the default gateway IP for KVM private network
+	DefaultKVMPrivateNetworkGatewayIP = "192.168.39.1"
+	// DefaultKVMPrivateNetworkGatewayIP is the default netmask for KVM private network
+	DefaultKVMPrivateNetworkMask = "255.255.255.0"
+	// DefaultKVMPrivateNetworkGatewayIP is the default start IP for KVM private network range
+	DefaultKVMPrivateNetworkStartIP = "192.168.39.2"
+	// DefaultKVMPrivateNetworkGatewayIP is the default last IP for KVM private network range
+	DefaultKVMPrivateNetworkEndIP = "192.168.39.254"
+
 	// DockerHostEnv is used for docker daemon settings
 	DockerHostEnv = "DOCKER_HOST"
 	// DockerCertPathEnv is used for docker daemon settings

@@ -64,66 +64,70 @@ import (
 )
 
 const (
-	isoURL                  = "iso-url"
-	memory                  = "memory"
-	cpus                    = "cpus"
-	humanReadableDiskSize   = "disk-size"
-	nfsSharesRoot           = "nfs-shares-root"
-	nfsShare                = "nfs-share"
-	kubernetesVersion       = "kubernetes-version"
-	hostOnlyCIDR            = "host-only-cidr"
-	containerRuntime        = "container-runtime"
-	criSocket               = "cri-socket"
-	networkPlugin           = "network-plugin"
-	enableDefaultCNI        = "enable-default-cni"
-	hypervVirtualSwitch     = "hyperv-virtual-switch"
-	hypervUseExternalSwitch = "hyperv-use-external-switch"
-	hypervUseNAT            = "hyperv-use-nat"
-	hypervExternalAdapter   = "hyperv-external-adapter"
-	HypervNatCIDR           = "hyperv-nat-cidr"
-	HypervDNSServers        = "hyperv-dns-servers"
-	kvmNetwork              = "kvm-network"
-	kvmQemuURI              = "kvm-qemu-uri"
-	kvmGPU                  = "kvm-gpu"
-	kvmHidden               = "kvm-hidden"
-	minikubeEnvPrefix       = "MINIKUBE"
-	defaultMemorySize       = "2000mb"
-	installAddons           = "install-addons"
-	defaultDiskSize         = "20000mb"
-	keepContext             = "keep-context"
-	createMount             = "mount"
-	featureGates            = "feature-gates"
-	apiServerName           = "apiserver-name"
-	apiServerPort           = "apiserver-port"
-	dnsDomain               = "dns-domain"
-	serviceCIDR             = "service-cluster-ip-range"
-	imageRepository         = "image-repository"
-	imageMirrorCountry      = "image-mirror-country"
-	mountString             = "mount-string"
-	disableDriverMounts     = "disable-driver-mounts"
-	cacheImages             = "cache-images"
-	uuid                    = "uuid"
-	vpnkitSock              = "hyperkit-vpnkit-sock"
-	vsockPorts              = "hyperkit-vsock-ports"
-	embedCerts              = "embed-certs"
-	noVTXCheck              = "no-vtx-check"
-	downloadOnly            = "download-only"
-	dnsProxy                = "dns-proxy"
-	hostDNSResolver         = "host-dns-resolver"
-	waitUntilHealthy        = "wait"
-	force                   = "force"
-	dryRun                  = "dry-run"
-	interactive             = "interactive"
-	waitTimeout             = "wait-timeout"
-	nativeSSH               = "native-ssh"
-	minimumMemorySize       = "1024mb"
-	minimumCPUS             = 2
-	minimumDiskSize         = "2000mb"
-	autoUpdate              = "auto-update-drivers"
-	hostOnlyNicType         = "host-only-nic-type"
-	natNicType              = "nat-nic-type"
-	loadBalancerStartIP     = "load-balancer-start-ip"
-	loadBalancerEndIP       = "load-balancer-end-ip"
+	isoURL                     = "iso-url"
+	memory                     = "memory"
+	cpus                       = "cpus"
+	humanReadableDiskSize      = "disk-size"
+	nfsSharesRoot              = "nfs-shares-root"
+	nfsShare                   = "nfs-share"
+	kubernetesVersion          = "kubernetes-version"
+	hostOnlyCIDR               = "host-only-cidr"
+	containerRuntime           = "container-runtime"
+	criSocket                  = "cri-socket"
+	networkPlugin              = "network-plugin"
+	enableDefaultCNI           = "enable-default-cni"
+	hypervVirtualSwitch        = "hyperv-virtual-switch"
+	hypervUseExternalSwitch    = "hyperv-use-external-switch"
+	hypervUseNAT               = "hyperv-use-nat"
+	hypervExternalAdapter      = "hyperv-external-adapter"
+	HypervNatCIDR              = "hyperv-nat-cidr"
+	HypervDNSServers           = "hyperv-dns-servers"
+	kvmNetwork                 = "kvm-network"
+	kvmQemuURI                 = "kvm-qemu-uri"
+	kvmGPU                     = "kvm-gpu"
+	kvmHidden                  = "kvm-hidden"
+	kvmPrivateNetworkGatewayIP = "kvm-private-network-gateway-ip"
+	kvmPrivateNetworkMask      = "kvm-private-network-mask"
+	kvmPrivateNetworkStartIP   = "kvm-private-network-start-ip"
+	kvmPrivateNetworkEndIP     = "kvm-private-network-end-ip"
+	minikubeEnvPrefix          = "MINIKUBE"
+	defaultMemorySize          = "2000mb"
+	installAddons              = "install-addons"
+	defaultDiskSize            = "20000mb"
+	keepContext                = "keep-context"
+	createMount                = "mount"
+	featureGates               = "feature-gates"
+	apiServerName              = "apiserver-name"
+	apiServerPort              = "apiserver-port"
+	dnsDomain                  = "dns-domain"
+	serviceCIDR                = "service-cluster-ip-range"
+	imageRepository            = "image-repository"
+	imageMirrorCountry         = "image-mirror-country"
+	mountString                = "mount-string"
+	disableDriverMounts        = "disable-driver-mounts"
+	cacheImages                = "cache-images"
+	uuid                       = "uuid"
+	vpnkitSock                 = "hyperkit-vpnkit-sock"
+	vsockPorts                 = "hyperkit-vsock-ports"
+	embedCerts                 = "embed-certs"
+	noVTXCheck                 = "no-vtx-check"
+	downloadOnly               = "download-only"
+	dnsProxy                   = "dns-proxy"
+	hostDNSResolver            = "host-dns-resolver"
+	waitUntilHealthy           = "wait"
+	force                      = "force"
+	dryRun                     = "dry-run"
+	interactive                = "interactive"
+	waitTimeout                = "wait-timeout"
+	nativeSSH                  = "native-ssh"
+	minimumMemorySize          = "1024mb"
+	minimumCPUS                = 2
+	minimumDiskSize            = "2000mb"
+	autoUpdate                 = "auto-update-drivers"
+	hostOnlyNicType            = "host-only-nic-type"
+	natNicType                 = "nat-nic-type"
+	loadBalancerStartIP        = "load-balancer-start-ip"
+	loadBalancerEndIP          = "load-balancer-end-ip"
 )
 
 var (
@@ -205,6 +209,10 @@ func initDriverFlags() {
 	startCmd.Flags().String(kvmQemuURI, "qemu:///system", "The KVM QEMU connection URI. (kvm2 driver only)")
 	startCmd.Flags().Bool(kvmGPU, false, "Enable experimental NVIDIA GPU support in minikube")
 	startCmd.Flags().Bool(kvmHidden, false, "Hide the hypervisor signature from the guest in minikube (kvm2 driver only)")
+	startCmd.Flags().String(kvmPrivateNetworkGatewayIP, constants.DefaultKVMPrivateNetworkGatewayIP, "Gateway IP for private network (kvm2 driver only)")
+	startCmd.Flags().String(kvmPrivateNetworkMask, constants.DefaultKVMPrivateNetworkMask, "Netmask for private network (kvm2 driver only)")
+	startCmd.Flags().String(kvmPrivateNetworkEndIP, constants.DefaultKVMPrivateNetworkStartIP, "start IP for private network range (kvm2 driver only)")
+	startCmd.Flags().String(kvmPrivateNetworkStartIP, constants.DefaultKVMPrivateNetworkEndIP, "end IP for private network range (kvm2 driver only)")
 
 	// virtualbox
 	startCmd.Flags().String(hostOnlyCIDR, "192.168.99.1/24", "The CIDR to be used for the minikube VM (virtualbox driver only)")
@@ -793,41 +801,45 @@ func generateCfgFromFlags(cmd *cobra.Command, k8sVersion string, drvName string)
 	}
 
 	cfg := config.MachineConfig{
-		Name:                    viper.GetString(config.MachineProfile),
-		KeepContext:             viper.GetBool(keepContext),
-		EmbedCerts:              viper.GetBool(embedCerts),
-		MinikubeISO:             viper.GetString(isoURL),
-		Memory:                  pkgutil.CalculateSizeInMB(viper.GetString(memory)),
-		CPUs:                    viper.GetInt(cpus),
-		DiskSize:                pkgutil.CalculateSizeInMB(viper.GetString(humanReadableDiskSize)),
-		Driver:                  drvName,
-		HyperkitVpnKitSock:      viper.GetString(vpnkitSock),
-		HyperkitVSockPorts:      viper.GetStringSlice(vsockPorts),
-		DockerEnv:               node.DockerEnv,
-		InsecureRegistry:        insecureRegistry,
-		RegistryMirror:          registryMirror,
-		HostOnlyCIDR:            viper.GetString(hostOnlyCIDR),
-		HypervVirtualSwitch:     viper.GetString(hypervVirtualSwitch),
-		HypervUseExternalSwitch: viper.GetBool(hypervUseExternalSwitch),
-		HypervUseNAT:            viper.GetBool(hypervUseNAT),
-		HypervExternalAdapter:   viper.GetString(hypervExternalAdapter),
-		HypervNatCIDR:           viper.GetString(HypervNatCIDR),
-		HypervNatDNSServers:     viper.GetStringSlice(HypervDNSServers),
-		KVMNetwork:              viper.GetString(kvmNetwork),
-		KVMQemuURI:              viper.GetString(kvmQemuURI),
-		KVMGPU:                  viper.GetBool(kvmGPU),
-		KVMHidden:               viper.GetBool(kvmHidden),
-		Downloader:              pkgutil.DefaultDownloader{},
-		DockerOpt:               node.DockerOpt,
-		DisableDriverMounts:     viper.GetBool(disableDriverMounts),
-		NFSShare:                viper.GetStringSlice(nfsShare),
-		NFSSharesRoot:           viper.GetString(nfsSharesRoot),
-		UUID:                    viper.GetString(uuid),
-		NoVTXCheck:              viper.GetBool(noVTXCheck),
-		DNSProxy:                viper.GetBool(dnsProxy),
-		HostDNSResolver:         viper.GetBool(hostDNSResolver),
-		HostOnlyNicType:         viper.GetString(hostOnlyNicType),
-		NatNicType:              viper.GetString(natNicType),
+		Name:                       viper.GetString(config.MachineProfile),
+		KeepContext:                viper.GetBool(keepContext),
+		EmbedCerts:                 viper.GetBool(embedCerts),
+		MinikubeISO:                viper.GetString(isoURL),
+		Memory:                     pkgutil.CalculateSizeInMB(viper.GetString(memory)),
+		CPUs:                       viper.GetInt(cpus),
+		DiskSize:                   pkgutil.CalculateSizeInMB(viper.GetString(humanReadableDiskSize)),
+		Driver:                     drvName,
+		HyperkitVpnKitSock:         viper.GetString(vpnkitSock),
+		HyperkitVSockPorts:         viper.GetStringSlice(vsockPorts),
+		DockerEnv:                  node.DockerEnv,
+		InsecureRegistry:           insecureRegistry,
+		RegistryMirror:             registryMirror,
+		HostOnlyCIDR:               viper.GetString(hostOnlyCIDR),
+		HypervVirtualSwitch:        viper.GetString(hypervVirtualSwitch),
+		HypervUseExternalSwitch:    viper.GetBool(hypervUseExternalSwitch),
+		HypervUseNAT:               viper.GetBool(hypervUseNAT),
+		HypervExternalAdapter:      viper.GetString(hypervExternalAdapter),
+		HypervNatCIDR:              viper.GetString(HypervNatCIDR),
+		HypervNatDNSServers:        viper.GetStringSlice(HypervDNSServers),
+		KVMNetwork:                 viper.GetString(kvmNetwork),
+		KVMQemuURI:                 viper.GetString(kvmQemuURI),
+		KVMGPU:                     viper.GetBool(kvmGPU),
+		KVMHidden:                  viper.GetBool(kvmHidden),
+		KVMPrivateNetworkGatewayIP: viper.GetString(kvmPrivateNetworkGatewayIP),
+		KVMPrivateNetworkMask:      viper.GetString(kvmPrivateNetworkMask),
+		KVMPrivateNetworkStartIP:   viper.GetString(kvmPrivateNetworkStartIP),
+		KVMPrivateNetworkEndIP:     viper.GetString(kvmPrivateNetworkEndIP),
+		Downloader:                 pkgutil.DefaultDownloader{},
+		DockerOpt:                  node.DockerOpt,
+		DisableDriverMounts:        viper.GetBool(disableDriverMounts),
+		NFSShare:                   viper.GetStringSlice(nfsShare),
+		NFSSharesRoot:              viper.GetString(nfsSharesRoot),
+		UUID:                       viper.GetString(uuid),
+		NoVTXCheck:                 viper.GetBool(noVTXCheck),
+		DNSProxy:                   viper.GetBool(dnsProxy),
+		HostDNSResolver:            viper.GetBool(hostDNSResolver),
+		HostOnlyNicType:            viper.GetString(hostOnlyNicType),
+		NatNicType:                 viper.GetString(natNicType),
 		KubernetesConfig: config.KubernetesConfig{
 			KubernetesVersion:      k8sVersion,
 			ClusterName:            viper.GetString(config.MachineProfile),

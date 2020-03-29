@@ -54,17 +54,21 @@ func init() {
 type kvmDriver struct {
 	*drivers.BaseDriver
 
-	Memory         int
-	DiskSize       int
-	CPU            int
-	Network        string
-	PrivateNetwork string
-	ISO            string
-	Boot2DockerURL string
-	DiskPath       string
-	GPU            bool
-	Hidden         bool
-	ConnectionURI  string
+	Memory                  int
+	DiskSize                int
+	CPU                     int
+	Network                 string
+	PrivateNetwork          string
+	PrivateNetworkGatewayIP string
+	PrivateNetworkMask      string
+	PrivateNetworkStartIP   string
+	PrivateNetworkEndIP     string
+	ISO                     string
+	Boot2DockerURL          string
+	DiskPath                string
+	GPU                     bool
+	Hidden                  bool
+	ConnectionURI           string
 }
 
 func configure(mc config.MachineConfig) (interface{}, error) {
@@ -75,17 +79,21 @@ func configure(mc config.MachineConfig) (interface{}, error) {
 			StorePath:   localpath.MiniPath(),
 			SSHUser:     "docker",
 		},
-		Memory:         mc.Memory,
-		CPU:            mc.CPUs,
-		Network:        mc.KVMNetwork,
-		PrivateNetwork: "minikube-net",
-		Boot2DockerURL: mc.Downloader.GetISOFileURI(mc.MinikubeISO),
-		DiskSize:       mc.DiskSize,
-		DiskPath:       filepath.Join(localpath.MiniPath(), "machines", name, fmt.Sprintf("%s.rawdisk", name)),
-		ISO:            filepath.Join(localpath.MiniPath(), "machines", name, "boot2docker.iso"),
-		GPU:            mc.KVMGPU,
-		Hidden:         mc.KVMHidden,
-		ConnectionURI:  mc.KVMQemuURI,
+		Memory:                  mc.Memory,
+		CPU:                     mc.CPUs,
+		Network:                 mc.KVMNetwork,
+		PrivateNetwork:          fmt.Sprintf("%s-net", mc.Name),
+		PrivateNetworkGatewayIP: mc.KVMPrivateNetworkGatewayIP,
+		PrivateNetworkMask:      mc.KVMPrivateNetworkMask,
+		PrivateNetworkStartIP:   mc.KVMPrivateNetworkStartIP,
+		PrivateNetworkEndIP:     mc.KVMPrivateNetworkEndIP,
+		Boot2DockerURL:          mc.Downloader.GetISOFileURI(mc.MinikubeISO),
+		DiskSize:                mc.DiskSize,
+		DiskPath:                filepath.Join(localpath.MiniPath(), "machines", name, fmt.Sprintf("%s.rawdisk", name)),
+		ISO:                     filepath.Join(localpath.MiniPath(), "machines", name, "boot2docker.iso"),
+		GPU:                     mc.KVMGPU,
+		Hidden:                  mc.KVMHidden,
+		ConnectionURI:           mc.KVMQemuURI,
 	}, nil
 }
 

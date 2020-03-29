@@ -76,6 +76,8 @@ require (
 	k8s.io/kubectl v0.0.0
 	k8s.io/kubernetes v1.17.2
 	k8s.io/utils v0.0.0-20200122174043-1e243dd1a584 // indirect
+	modernc.org/internal v1.0.0 // indirect
+	modernc.org/ir v1.0.0 // indirect
 	sigs.k8s.io/sig-storage-lib-external-provisioner v4.0.0+incompatible
 )
 
