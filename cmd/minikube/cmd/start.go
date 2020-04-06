@@ -1004,11 +1004,40 @@ func getMetadataCustomizers(cmd *cobra.Command, k8sVersion string, drvName strin
 		return nil, metadata.Metadata{}, nil
 	}
 
-	if drvName == driver.HyperV {
+	switch drvName {
+	case driver.HyperV:
 		hypervNatCIDR := viper.GetString(HypervNatCIDR)
 		gatewayIP, ipNet, err := net.ParseCIDR(hypervNatCIDR)
 		if err != nil {
 			return nil, metadata.Metadata{}, errors.Wrapf(err, "specified CIDR %s is not valid", hypervNatCIDR)
+		}
+
+		nextIP, err := incrementIP(gatewayIP, *ipNet)
+		if err != nil {
+			return nil, metadata.Metadata{}, err
+		}
+
+		hypervDNSServers := viper.GetStringSlice(HypervDNSServers)
+		md := metadata.Metadata{
+			Networks: map[string]metadata.Network{
+				metadata.DefaultNetworkInterface: {
+					MachineIPNet: net.IPNet{
+						IP:   nextIP,
+						Mask: ipNet.Mask,
+					},
+					GatewayIP: gatewayIP,
+					DNS:       hypervDNSServers,
+					ForceIPv4: true,
+				},
+			}}
+
+		return []string{"network"}, md, nil
+
+	case driver.KVM2:
+		kvmNatCIDR := strings.Join([]string{viper.GetString(kvmPrivateNetworkGatewayIP), viper.GetString(kvmPrivateNetworkMask)}, "/")
+		gatewayIP, ipNet, err := net.ParseCIDR(kvmNatCIDR)
+		if err != nil {
+			return nil, metadata.Metadata{}, errors.Wrapf(err, "specified CIDR %s is not valid", kvmNatCIDR)
 		}
 
 		nextIP, err := incrementIP(gatewayIP, *ipNet)
