@@ -18,7 +18,7 @@ package libarchive
 
 // #cgo darwin CFLAGS: -I/usr/local/opt/libarchive/include
 // #cgo windows LDFLAGS: -static -larchive -lbcrypt -liconv -lexpat -lxml2 -lbz2 -llz4 -llzma -lz -lzstd
-// #cgo linux LDFLAGS: -static -larchive -lexpat -lnettle -lxml2 -licui18n -licuuc -licudata -lbz2 -llz4 -llzma -lz -lzstd -lstdc++ -Wl,-Bdynamic -lc -lm -lpthread -ldl
+// #cgo linux LDFLAGS: -static -larchive -lexpat -lnettle -lxml2 -licui18n -licuuc -licudata -lbz2 -llz4 -llzma -lz -lzstd -lstdc++ -Wl,-Bdynamic -lc -lm -lpthread -ldl -llzo2
 // #cgo darwin LDFLAGS: -L/usr/local/opt/libarchive/lib -larchive
 //#include <stdlib.h>
 //#include <archive.h>
