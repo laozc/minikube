@@ -54,7 +54,7 @@ const domainTmpl = `
   <devices>
     <disk type='file' device='cdrom'>
       <source file='{{.ISO}}'/>
-      <target dev='hdc' bus='scsi'/>
+      <target dev='sda' bus='sata'/>
       <readonly/>
     </disk>
     <disk type='file' device='disk'>
