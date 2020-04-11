@@ -26,6 +26,7 @@ import (
 	"os/exec"
 	"os/user"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -1017,15 +1018,14 @@ func getMetadataCustomizers(cmd *cobra.Command, k8sVersion string, drvName strin
 			return nil, metadata.Metadata{}, err
 		}
 
+		ones, _ := ipNet.Mask.Size()
 		hypervDNSServers := viper.GetStringSlice(HypervDNSServers)
 		md := metadata.Metadata{
 			Networks: map[string]metadata.Network{
 				metadata.DefaultNetworkInterface: {
-					MachineIPNet: net.IPNet{
-						IP:   nextIP,
-						Mask: ipNet.Mask,
-					},
-					GatewayIP: gatewayIP,
+					MachineIP: nextIP.String(),
+					Netmask:   strconv.Itoa(ones),
+					GatewayIP: gatewayIP.String(),
 					DNS:       hypervDNSServers,
 					ForceIPv4: true,
 				},
@@ -1045,15 +1045,14 @@ func getMetadataCustomizers(cmd *cobra.Command, k8sVersion string, drvName strin
 			return nil, metadata.Metadata{}, err
 		}
 
+		ones, _ := ipNet.Mask.Size()
 		hypervDNSServers := viper.GetStringSlice(HypervDNSServers)
 		md := metadata.Metadata{
 			Networks: map[string]metadata.Network{
 				metadata.DefaultNetworkInterface: {
-					MachineIPNet: net.IPNet{
-						IP:   nextIP,
-						Mask: ipNet.Mask,
-					},
-					GatewayIP: gatewayIP,
+					MachineIP: nextIP.String(),
+					Netmask:   strconv.Itoa(ones),
+					GatewayIP: gatewayIP.String(),
 					DNS:       hypervDNSServers,
 					ForceIPv4: true,
 				},
