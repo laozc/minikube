@@ -57,6 +57,7 @@ type MachineConfig struct {
 	KVMQemuURI                 string             // Only used by kvm2
 	KVMGPU                     bool               // Only used by kvm2
 	KVMHidden                  bool               // Only used by kvm2
+	KVMPrivateNetworkGuestIP   string             // Only used by kvm2
 	KVMPrivateNetworkGatewayIP string             // Only used by kvm2
 	KVMPrivateNetworkMask      string             // Only used by kvm2
 	KVMPrivateNetworkStartIP   string             // Only used by kvm2

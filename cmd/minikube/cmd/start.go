@@ -781,12 +781,6 @@ func generateCfgFromFlags(cmd *cobra.Command, k8sVersion string, drvName string)
 		out.T(out.SuccessType, "Using image repository {{.name}}", out.V{"name": repository})
 	}
 
-	// Checks if metadata customization is needed
-	customizers, metadata, err := getMetadataCustomizers(cmd, k8sVersion, drvName)
-	if err != nil {
-		return config.MachineConfig{}, config.Node{}, err
-	}
-
 	var kubeNodeName string
 	if drvName != driver.None {
 		kubeNodeName = viper.GetString(config.MachineProfile)
@@ -861,9 +855,13 @@ func generateCfgFromFlags(cmd *cobra.Command, k8sVersion string, drvName string)
 			LoadBalancerEndIP:      viper.GetString(loadBalancerEndIP),
 		},
 		Nodes:               []config.Node{cp},
-		MetadataCustomizers: customizers,
-		Metadata:            metadata,
 	}
+
+	err = setDriverConfiguration(&cfg, cmd)
+	if err != nil {
+		return config.MachineConfig{}, config.Node{}, err
+	}
+
 	return cfg, cp, nil
 }
 
@@ -998,24 +996,24 @@ func incrementIP(startIP net.IP, ipNet net.IPNet) (net.IP, error) {
 	return ip, nil
 }
 
-// getMetadataCustomizers returns metadata customizers based on driver and flags
-func getMetadataCustomizers(cmd *cobra.Command, k8sVersion string, drvName string) ([]string, metadata.Metadata, error) {
+// setDriverConfiguration sets the driver-specific based on flags
+func setDriverConfiguration(mc *config.MachineConfig, cmd *cobra.Command) error {
 	supports, _ := metadata.SupportsPatch()
 	if !supports {
-		return nil, metadata.Metadata{}, nil
+		return nil
 	}
 
-	switch drvName {
+	switch mc.Driver {
 	case driver.HyperV:
 		hypervNatCIDR := viper.GetString(HypervNatCIDR)
 		gatewayIP, ipNet, err := net.ParseCIDR(hypervNatCIDR)
 		if err != nil {
-			return nil, metadata.Metadata{}, errors.Wrapf(err, "specified CIDR %s is not valid", hypervNatCIDR)
+			return errors.Wrapf(err, "specified CIDR %s is not valid", hypervNatCIDR)
 		}
 
 		nextIP, err := incrementIP(gatewayIP, *ipNet)
 		if err != nil {
-			return nil, metadata.Metadata{}, err
+			return err
 		}
 
 		ones, _ := ipNet.Mask.Size()
@@ -1031,7 +1029,8 @@ func getMetadataCustomizers(cmd *cobra.Command, k8sVersion string, drvName strin
 				},
 			}}
 
-		return []string{"network"}, md, nil
+		mc.Metadata = md
+		mc.MetadataCustomizers = []string{"network"}
 
 	case driver.KVM2:
 		kvmNetMask := net.IPMask(net.ParseIP(viper.GetString(kvmPrivateNetworkMask)).To4())
@@ -1039,12 +1038,12 @@ func getMetadataCustomizers(cmd *cobra.Command, k8sVersion string, drvName strin
 		kvmNatCIDR := fmt.Sprintf("%s/%d", viper.GetString(kvmPrivateNetworkGatewayIP), ones)
 		gatewayIP, ipNet, err := net.ParseCIDR(kvmNatCIDR)
 		if err != nil {
-			return nil, metadata.Metadata{}, errors.Wrapf(err, "specified CIDR %s is not valid", kvmNatCIDR)
+			return errors.Wrapf(err, "specified CIDR %s is not valid", kvmNatCIDR)
 		}
 
 		nextIP, err := incrementIP(gatewayIP, *ipNet)
 		if err != nil {
-			return nil, metadata.Metadata{}, err
+			return err
 		}
 
 		md := metadata.Metadata{
@@ -1058,8 +1057,13 @@ func getMetadataCustomizers(cmd *cobra.Command, k8sVersion string, drvName strin
 				},
 			}}
 
-		return []string{"network"}, md, nil
+		mc.Metadata = md
+		mc.MetadataCustomizers = []string{"network"}
+		mc.KVMPrivateNetworkGuestIP = nextIP.String()
+		// disable DHCP on private network
+		mc.KVMPrivateNetworkStartIP = ""
+		mc.KVMPrivateNetworkEndIP = ""
 	}
 
-	return nil, metadata.Metadata{}, nil
+	return nil
 }

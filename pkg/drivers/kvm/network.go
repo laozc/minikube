@@ -144,7 +144,7 @@ func (d *Driver) createNetwork() error {
 			startIP = defaultNetworkStartIP
 			endIP = defaultNetworkEndIP
 		}
-		network := struct {
+		networkConfig := struct {
 			Name      string
 			GatewayIP string
 			Netmask   string
@@ -158,7 +158,7 @@ func (d *Driver) createNetwork() error {
 			EndIP:     endIP,
 		}
 		var networkXML bytes.Buffer
-		if err := networkTmpl.Execute(&networkXML, network); err != nil {
+		if err := networkTmpl.Execute(&networkXML, networkConfig); err != nil {
 			return errors.Wrap(err, "executing network template")
 		}
 
@@ -296,6 +296,10 @@ func (d *Driver) checkDomains(conn *libvirt.Connect) error {
 }
 
 func (d *Driver) lookupIP() (string, error) {
+	if d.PrivateNetworkGuestIP != "" {
+		return d.PrivateNetworkGuestIP, nil
+	}
+
 	conn, err := getConnection(d.ConnectionURI)
 	if err != nil {
 		return "", errors.Wrap(err, "getting connection and domain")

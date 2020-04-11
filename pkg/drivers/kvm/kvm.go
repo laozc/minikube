@@ -50,6 +50,9 @@ type Driver struct {
 	// The name of the private network
 	PrivateNetwork string
 
+	// The IP of the guest VM
+	PrivateNetworkGuestIP string
+
 	// The Gateway IP of the private network
 	PrivateNetworkGatewayIP string
 

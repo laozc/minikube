@@ -59,6 +59,7 @@ type kvmDriver struct {
 	CPU                     int
 	Network                 string
 	PrivateNetwork          string
+	PrivateNetworkGuestIP   string
 	PrivateNetworkGatewayIP string
 	PrivateNetworkMask      string
 	PrivateNetworkStartIP   string
@@ -83,10 +84,11 @@ func configure(mc config.MachineConfig) (interface{}, error) {
 		CPU:                     mc.CPUs,
 		Network:                 mc.KVMNetwork,
 		PrivateNetwork:          fmt.Sprintf("%s-net", mc.Name),
+		PrivateNetworkGuestIP:   mc.KVMPrivateNetworkGuestIP,
 		PrivateNetworkGatewayIP: mc.KVMPrivateNetworkGatewayIP,
 		PrivateNetworkMask:      mc.KVMPrivateNetworkMask,
-		PrivateNetworkStartIP:   "",
-		PrivateNetworkEndIP:     "",
+		PrivateNetworkStartIP:   mc.KVMPrivateNetworkStartIP,
+		PrivateNetworkEndIP:     mc.KVMPrivateNetworkEndIP,
 		Boot2DockerURL:          mc.Downloader.GetISOFileURI(mc.MinikubeISO),
 		DiskSize:                mc.DiskSize,
 		DiskPath:                filepath.Join(localpath.MiniPath(), "machines", name, fmt.Sprintf("%s.rawdisk", name)),
