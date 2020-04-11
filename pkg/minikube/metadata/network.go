@@ -37,7 +37,7 @@ Address={{ .IPAddress }}
 {{ if not (eq "" .GatewayIP) }}Gateway={{ .GatewayIP }}{{- end}}
 {{- range $s := .DNS}}
 DNS={{ $s }}
-{{-end}}
+{{- end}}
 IPv6AcceptRA={{ .IPv6AcceptRA }}
 `))
 
