@@ -21,6 +21,7 @@ package kvm2
 import (
 	"context"
 	"fmt"
+	"net"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -74,6 +75,25 @@ type kvmDriver struct {
 
 func configure(mc config.MachineConfig) (interface{}, error) {
 	name := mc.Name
+	var privateNetwork config.NetworkInterface
+	for _, ni := range mc.Network.NetworkInterfaces {
+		if ni.Name == "eth1" {
+			privateNetwork = ni
+		}
+	}
+	var netmask, dhcpStartIP, dhcpEndIP string
+	netmask = privateNetwork.Netmask
+	if netmask != "" {
+		_, ipNet, err := net.ParseCIDR(fmt.Sprintf("%s/%s", privateNetwork.IPAddress, privateNetwork.Netmask))
+		if err != nil {
+			return nil, err
+		}
+		netmask = fmt.Sprintf("%d.%d.%d.%d", ipNet.Mask[0], ipNet.Mask[1], ipNet.Mask[2], ipNet.Mask[3])
+	}
+	if privateNetwork.EnableDHCP {
+		dhcpStartIP = privateNetwork.DHCPStartIP
+		dhcpEndIP = privateNetwork.DHCPEndIP
+	}
 	return kvmDriver{
 		BaseDriver: &drivers.BaseDriver{
 			MachineName: name,
@@ -84,11 +104,11 @@ func configure(mc config.MachineConfig) (interface{}, error) {
 		CPU:                     mc.CPUs,
 		Network:                 mc.KVMNetwork,
 		PrivateNetwork:          fmt.Sprintf("%s-net", mc.Name),
-		PrivateNetworkGuestIP:   mc.KVMPrivateNetworkGuestIP,
-		PrivateNetworkGatewayIP: mc.KVMPrivateNetworkGatewayIP,
-		PrivateNetworkMask:      mc.KVMPrivateNetworkMask,
-		PrivateNetworkStartIP:   mc.KVMPrivateNetworkStartIP,
-		PrivateNetworkEndIP:     mc.KVMPrivateNetworkEndIP,
+		PrivateNetworkGuestIP:   privateNetwork.IPAddress,
+		PrivateNetworkGatewayIP: privateNetwork.Gateway,
+		PrivateNetworkMask:      netmask,
+		PrivateNetworkStartIP:   dhcpStartIP,
+		PrivateNetworkEndIP:     dhcpEndIP,
 		Boot2DockerURL:          mc.Downloader.GetISOFileURI(mc.MinikubeISO),
 		DiskSize:                mc.DiskSize,
 		DiskPath:                filepath.Join(localpath.MiniPath(), "machines", name, fmt.Sprintf("%s.rawdisk", name)),

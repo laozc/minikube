@@ -19,6 +19,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"k8s.io/minikube/pkg/minikube/metadata"
 	"math"
 	"net"
 	"net/url"
@@ -53,7 +54,6 @@ import (
 	"k8s.io/minikube/pkg/minikube/kubeconfig"
 	"k8s.io/minikube/pkg/minikube/localpath"
 	"k8s.io/minikube/pkg/minikube/machine"
-	"k8s.io/minikube/pkg/minikube/metadata"
 	"k8s.io/minikube/pkg/minikube/node"
 	"k8s.io/minikube/pkg/minikube/notify"
 	"k8s.io/minikube/pkg/minikube/out"
@@ -854,7 +854,7 @@ func generateCfgFromFlags(cmd *cobra.Command, k8sVersion string, drvName string)
 			LoadBalancerStartIP:    viper.GetString(loadBalancerStartIP),
 			LoadBalancerEndIP:      viper.GetString(loadBalancerEndIP),
 		},
-		Nodes:               []config.Node{cp},
+		Nodes: []config.Node{cp},
 	}
 
 	err = setDriverConfiguration(&cfg, cmd)
@@ -1018,18 +1018,21 @@ func setDriverConfiguration(mc *config.MachineConfig, cmd *cobra.Command) error 
 
 		ones, _ := ipNet.Mask.Size()
 		hypervDNSServers := viper.GetStringSlice(HypervDNSServers)
-		md := metadata.Metadata{
-			Networks: map[string]metadata.Network{
-				metadata.DefaultNetworkInterface: {
-					MachineIP: nextIP.String(),
-					Netmask:   strconv.Itoa(ones),
-					GatewayIP: gatewayIP.String(),
-					DNS:       hypervDNSServers,
-					ForceIPv4: true,
+		mc.Network = config.Network{
+			Gateway: config.NetworkInterface{},
+			NetworkInterfaces: []config.NetworkInterface{
+				{
+					Name:       "eth0",
+					IPAddress:  nextIP.String(),
+					Netmask:    strconv.Itoa(ones),
+					Gateway:    gatewayIP.String(),
+					DNS:        hypervDNSServers,
+					EnableDHCP: false,
+					UseGateway: true,
+					ForceIPv4:  true,
 				},
-			}}
-
-		mc.Metadata = md
+			},
+		}
 		mc.MetadataCustomizers = []string{"network"}
 
 	case driver.KVM2:
@@ -1046,23 +1049,26 @@ func setDriverConfiguration(mc *config.MachineConfig, cmd *cobra.Command) error 
 			return err
 		}
 
-		md := metadata.Metadata{
-			Networks: map[string]metadata.Network{
-				"eth1": {
-					MachineIP: nextIP.String(),
-					Netmask:   strconv.Itoa(ones),
-					GatewayIP: "",
-					DNS:       []string{},
-					ForceIPv4: true,
-				},
-			}}
-
-		mc.Metadata = md
 		mc.MetadataCustomizers = []string{"network"}
-		mc.KVMPrivateNetworkGuestIP = nextIP.String()
+		mc.Network = config.Network{
+			Gateway: config.NetworkInterface{},
+			NetworkInterfaces: []config.NetworkInterface{
+				{
+					Name:       "eth1",
+					IPAddress:  nextIP.String(),
+					Netmask:    strconv.Itoa(ones),
+					Gateway:    gatewayIP.String(),
+					DNS:        []string{},
+					EnableDHCP: false,
+					UseGateway: false,
+					ForceIPv4:  true,
+				},
+			},
+		}
 		// disable DHCP on private network
 		mc.KVMPrivateNetworkStartIP = ""
 		mc.KVMPrivateNetworkEndIP = ""
+		mc.MetadataCustomizers = []string{"network"}
 	}
 
 	return nil

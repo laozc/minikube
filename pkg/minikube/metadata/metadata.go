@@ -19,6 +19,7 @@ package metadata
 import (
 	"fmt"
 	"io/ioutil"
+	"k8s.io/minikube/pkg/minikube/config"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -29,10 +30,6 @@ import (
 	"github.com/pkg/errors"
 
 	"k8s.io/minikube/pkg/util"
-)
-
-const (
-	DefaultNetworkInterface = "eth0"
 )
 
 type Network struct {
@@ -55,7 +52,7 @@ for f in *; do
 done
 `
 
-func CreateMetadataTar(fp string, md Metadata) error {
+func CreateMetadataTar(fp string, cfg config.MachineConfig) error {
 	tmpDir, err := ioutil.TempDir("", "metadata")
 	if err != nil {
 		return err
@@ -63,7 +60,7 @@ func CreateMetadataTar(fp string, md Metadata) error {
 
 	defer os.RemoveAll(tmpDir)
 
-	err = generateNetworkConfig(tmpDir, md)
+	err = generateNetworkConfig(tmpDir, cfg)
 	if err != nil {
 		return errors.Wrapf(err, "failed to generate network config")
 	}

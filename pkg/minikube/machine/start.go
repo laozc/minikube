@@ -103,13 +103,13 @@ func engineOptions(cfg config.MachineConfig) *engine.Options {
 }
 
 // customize ISO to include initialization metadata for each host VM
-func customizeISO(cfg *config.MachineConfig, md metadata.Metadata) error {
+func customizeISO(cfg config.MachineConfig) (string, error) {
 	isoPath := cfg.Downloader.GetISOCacheFilepath(cfg.MinikubeISO)
 	customizedISOPath := filepath.Join(localpath.MiniPath(), "machines", cfg.Name, filepath.Base(isoPath))
 
 	err := os.MkdirAll(filepath.Dir(customizedISOPath), 0755)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	err = func() error {
@@ -121,7 +121,7 @@ func customizeISO(cfg *config.MachineConfig, md metadata.Metadata) error {
 		defer os.RemoveAll(tmpDir)
 
 		mt := filepath.Join(tmpDir, "metadata.tar")
-		err = metadata.CreateMetadataTar(mt, md)
+		err = metadata.CreateMetadataTar(mt, cfg)
 		if err != nil {
 			return errors.Wrapf(err, "failed to create metadata tar file")
 		}
@@ -134,11 +134,10 @@ func customizeISO(cfg *config.MachineConfig, md metadata.Metadata) error {
 		return nil
 	}()
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	cfg.MinikubeISO = "file://" + filepath.ToSlash(customizedISOPath)
-	return nil
+	return "file://" + filepath.ToSlash(customizedISOPath), nil
 }
 
 func createHost(api libmachine.API, cfg config.MachineConfig) (*host.Host, error) {
@@ -156,10 +155,11 @@ func createHost(api libmachine.API, cfg config.MachineConfig) (*host.Host, error
 	}
 	showHostInfo(cfg)
 	if len(cfg.MetadataCustomizers) > 0 {
-		err := customizeISO(&cfg, cfg.Metadata)
+		isoPath, err := customizeISO(cfg)
 		if err != nil {
 			return nil, errors.Wrap(err, "customize ISO")
 		}
+		cfg.MinikubeISO = isoPath
 	}
 	def := registry.Driver(cfg.Driver)
 	if def.Empty() {

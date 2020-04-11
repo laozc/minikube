@@ -20,7 +20,6 @@ import (
 	"net"
 
 	"github.com/blang/semver"
-	"k8s.io/minikube/pkg/minikube/metadata"
 	"k8s.io/minikube/pkg/util"
 )
 
@@ -29,6 +28,26 @@ type Profile struct {
 	Name   string
 	Status string // running, stopped
 	Config *MachineConfig
+}
+
+// NetworkInterface contains the configuration for machine network interface
+type NetworkInterface struct {
+	Name        string
+	IPAddress   string
+	Netmask     string
+	Gateway     string
+	DNS         []string
+	EnableDHCP  bool
+	DHCPStartIP string
+	DHCPEndIP   string
+	UseGateway  bool
+	ForceIPv4   bool
+}
+
+// Network contains the configuration for machine network
+type Network struct {
+	Gateway           NetworkInterface
+	NetworkInterfaces []NetworkInterface
 }
 
 // MachineConfig contains the parameters used to start a cluster.
@@ -57,7 +76,6 @@ type MachineConfig struct {
 	KVMQemuURI                 string             // Only used by kvm2
 	KVMGPU                     bool               // Only used by kvm2
 	KVMHidden                  bool               // Only used by kvm2
-	KVMPrivateNetworkGuestIP   string             // Only used by kvm2
 	KVMPrivateNetworkGatewayIP string             // Only used by kvm2
 	KVMPrivateNetworkMask      string             // Only used by kvm2
 	KVMPrivateNetworkStartIP   string             // Only used by kvm2
@@ -77,7 +95,7 @@ type MachineConfig struct {
 	Nodes                      []Node
 	Addons                     map[string]bool
 	MetadataCustomizers        []string // used by VM metadata customization
-	Metadata                   metadata.Metadata
+	Network                    Network
 }
 
 // KubernetesConfig contains the parameters used to configure the VM Kubernetes.

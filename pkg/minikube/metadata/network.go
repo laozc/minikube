@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"k8s.io/minikube/pkg/minikube/config"
 	"os"
 	"path/filepath"
 	"text/template"
@@ -33,10 +34,10 @@ Name={{ .NetworkInterface }}
 
 [Network]
 Address={{ .IPAddress }}
-{{ if not .GatewayIP }}Gateway={{ .GatewayIP }}{{- end}}
+{{ if not (eq "" .GatewayIP) }}Gateway={{ .GatewayIP }}{{- end}}
 {{- range $s := .DNS}}
-DNS={{ $s -}}
-{{end}}
+DNS={{ $s }}
+{{-end}}
 IPv6AcceptRA={{ .IPv6AcceptRA }}
 `))
 
@@ -51,7 +52,7 @@ const (
 	networkConfigPriority = 10
 )
 
-func generateNetworkConfig(dir string, md Metadata) error {
+func generateNetworkConfig(dir string, cfg config.MachineConfig) error {
 	d := filepath.Join(dir, "network")
 
 	err := os.Mkdir(d, 0755)
@@ -59,10 +60,15 @@ func generateNetworkConfig(dir string, md Metadata) error {
 		return errors.Wrapf(err, "failed to create dir %s", d)
 	}
 
-	for ifName, c := range md.Networks {
+	for _, c := range cfg.Network.NetworkInterfaces {
 		acceptRA := "yes"
 		if c.ForceIPv4 {
 			acceptRA = "no"
+		}
+
+		var gateway string
+		if c.UseGateway {
+			gateway = c.Gateway
 		}
 
 		data := struct {
@@ -72,9 +78,9 @@ func generateNetworkConfig(dir string, md Metadata) error {
 			DNS              []string
 			IPv6AcceptRA     string
 		}{
-			NetworkInterface: ifName,
-			IPAddress:        fmt.Sprintf("%s/%s", c.MachineIP, c.Netmask),
-			GatewayIP:        c.GatewayIP,
+			NetworkInterface: c.Name,
+			IPAddress:        fmt.Sprintf("%s/%s", c.IPAddress, c.Netmask),
+			GatewayIP:        gateway,
 			DNS:              c.DNS,
 			IPv6AcceptRA:     acceptRA,
 		}
@@ -85,7 +91,7 @@ func generateNetworkConfig(dir string, md Metadata) error {
 			return errors.Wrapf(err, "failed to generate systemd-networkd configuration")
 		}
 
-		fn := fmt.Sprintf("%2d-%s.network", networkConfigPriority, ifName)
+		fn := fmt.Sprintf("%2d-%s.network", networkConfigPriority, c.Name)
 		err = ioutil.WriteFile(filepath.Join(d, fn), buf.Bytes(), 0644)
 		if err != nil {
 			return errors.Wrapf(err, "failed to write systemd-networkd configuration")
