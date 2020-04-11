@@ -212,8 +212,8 @@ func initDriverFlags() {
 	startCmd.Flags().Bool(kvmHidden, false, "Hide the hypervisor signature from the guest in minikube (kvm2 driver only)")
 	startCmd.Flags().String(kvmPrivateNetworkGatewayIP, constants.DefaultKVMPrivateNetworkGatewayIP, "Gateway IP for private network (kvm2 driver only)")
 	startCmd.Flags().String(kvmPrivateNetworkMask, constants.DefaultKVMPrivateNetworkMask, "Netmask for private network (kvm2 driver only)")
-	startCmd.Flags().String(kvmPrivateNetworkEndIP, constants.DefaultKVMPrivateNetworkStartIP, "start IP for private network range (kvm2 driver only)")
-	startCmd.Flags().String(kvmPrivateNetworkStartIP, constants.DefaultKVMPrivateNetworkEndIP, "end IP for private network range (kvm2 driver only)")
+	startCmd.Flags().String(kvmPrivateNetworkEndIP, constants.DefaultKVMPrivateNetworkEndIP, "start IP for private network range (kvm2 driver only)")
+	startCmd.Flags().String(kvmPrivateNetworkStartIP, constants.DefaultKVMPrivateNetworkStartIP, "end IP for private network range (kvm2 driver only)")
 
 	// virtualbox
 	startCmd.Flags().String(hostOnlyCIDR, "192.168.99.1/24", "The CIDR to be used for the minikube VM (virtualbox driver only)")
@@ -1034,7 +1034,9 @@ func getMetadataCustomizers(cmd *cobra.Command, k8sVersion string, drvName strin
 		return []string{"network"}, md, nil
 
 	case driver.KVM2:
-		kvmNatCIDR := strings.Join([]string{viper.GetString(kvmPrivateNetworkGatewayIP), viper.GetString(kvmPrivateNetworkMask)}, "/")
+		kvmNetMask := net.IPMask(net.ParseIP(viper.GetString(kvmPrivateNetworkMask)).To4())
+		ones, _ := kvmNetMask.Size()
+		kvmNatCIDR := fmt.Sprintf("%s/%d", viper.GetString(kvmPrivateNetworkGatewayIP), ones)
 		gatewayIP, ipNet, err := net.ParseCIDR(kvmNatCIDR)
 		if err != nil {
 			return nil, metadata.Metadata{}, errors.Wrapf(err, "specified CIDR %s is not valid", kvmNatCIDR)
@@ -1045,15 +1047,13 @@ func getMetadataCustomizers(cmd *cobra.Command, k8sVersion string, drvName strin
 			return nil, metadata.Metadata{}, err
 		}
 
-		ones, _ := ipNet.Mask.Size()
-		hypervDNSServers := viper.GetStringSlice(HypervDNSServers)
 		md := metadata.Metadata{
 			Networks: map[string]metadata.Network{
-				metadata.DefaultNetworkInterface: {
+				"eth1": {
 					MachineIP: nextIP.String(),
 					Netmask:   strconv.Itoa(ones),
-					GatewayIP: gatewayIP.String(),
-					DNS:       hypervDNSServers,
+					GatewayIP: "",
+					DNS:       []string{},
 					ForceIPv4: true,
 				},
 			}}
