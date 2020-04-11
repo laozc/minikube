@@ -33,7 +33,7 @@ Name={{ .NetworkInterface }}
 
 [Network]
 Address={{ .IPAddress }}
-Gateway={{ .GatewayIP }}
+{{ if not .GatewayIP }}Gateway={{ .GatewayIP }}{{- end}}
 {{- range $s := .DNS}}
 DNS={{ $s -}}
 {{end}}
