@@ -19,7 +19,6 @@ package metadata
 import (
 	"fmt"
 	"io/ioutil"
-	"net"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -37,10 +36,11 @@ const (
 )
 
 type Network struct {
-	MachineIPNet net.IPNet
-	GatewayIP    net.IP
-	DNS          []string
-	ForceIPv4    bool
+	MachineIP string
+	Netmask   string
+	GatewayIP string
+	DNS       []string
+	ForceIPv4 bool
 }
 
 type Metadata struct {

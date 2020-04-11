@@ -73,8 +73,8 @@ func generateNetworkConfig(dir string, md Metadata) error {
 			IPv6AcceptRA     string
 		}{
 			NetworkInterface: ifName,
-			IPAddress:        c.MachineIPNet.String(),
-			GatewayIP:        c.GatewayIP.String(),
+			IPAddress:        fmt.Sprintf("%s/%s", c.MachineIP, c.Netmask),
+			GatewayIP:        c.GatewayIP,
 			DNS:              c.DNS,
 			IPv6AcceptRA:     acceptRA,
 		}
