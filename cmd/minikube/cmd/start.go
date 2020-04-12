@@ -980,22 +980,6 @@ func getKubernetesVersion(old *config.MachineConfig) string {
 	return nv
 }
 
-// guess next IP of the sub network
-func incrementIP(startIP net.IP, ipNet net.IPNet) (net.IP, error) {
-	ip := make(net.IP, len(startIP))
-	copy(ip, startIP)
-	for i := len(ip) - 1; i >= 0; i-- {
-		ip[i]++
-		if ip[i] != 0 {
-			break
-		}
-	}
-	if !ipNet.Contains(ip) {
-		return nil, errors.New("overflowed CIDR while incrementing IP")
-	}
-	return ip, nil
-}
-
 // setDriverConfiguration sets the driver-specific based on flags
 func setDriverConfiguration(mc *config.MachineConfig, cmd *cobra.Command) error {
 	supports, _ := metadata.SupportsPatch()
@@ -1006,24 +990,19 @@ func setDriverConfiguration(mc *config.MachineConfig, cmd *cobra.Command) error 
 	switch mc.Driver {
 	case driver.HyperV:
 		hypervNatCIDR := viper.GetString(HypervNatCIDR)
-		gatewayIP, ipNet, err := net.ParseCIDR(hypervNatCIDR)
-		if err != nil {
-			return errors.Wrapf(err, "specified CIDR %s is not valid", hypervNatCIDR)
-		}
-
-		nextIP, err := incrementIP(gatewayIP, *ipNet)
+		gatewayIP, netmask, guestIP, loadBalancerStartIP, loadBalancerEndIP, err := pkgutil.AllocateIPs(hypervNatCIDR)
 		if err != nil {
 			return err
 		}
 
-		ones, _ := ipNet.Mask.Size()
+		ones, _ := netmask.Size()
 		hypervDNSServers := viper.GetStringSlice(HypervDNSServers)
 		mc.Network = config.Network{
 			Gateway: config.NetworkInterface{},
 			NetworkInterfaces: []config.NetworkInterface{
 				{
 					Name:       "eth0",
-					IPAddress:  nextIP.String(),
+					IPAddress:  guestIP.String(),
 					Netmask:    strconv.Itoa(ones),
 					Gateway:    gatewayIP.String(),
 					DNS:        hypervDNSServers,
@@ -1034,17 +1013,14 @@ func setDriverConfiguration(mc *config.MachineConfig, cmd *cobra.Command) error 
 			},
 		}
 		mc.MetadataCustomizers = []string{"network"}
+		mc.KubernetesConfig.LoadBalancerStartIP = loadBalancerStartIP.String()
+		mc.KubernetesConfig.LoadBalancerEndIP = loadBalancerEndIP.String()
 
 	case driver.KVM2:
 		kvmNetMask := net.IPMask(net.ParseIP(viper.GetString(kvmPrivateNetworkMask)).To4())
 		ones, _ := kvmNetMask.Size()
 		kvmNatCIDR := fmt.Sprintf("%s/%d", viper.GetString(kvmPrivateNetworkGatewayIP), ones)
-		gatewayIP, ipNet, err := net.ParseCIDR(kvmNatCIDR)
-		if err != nil {
-			return errors.Wrapf(err, "specified CIDR %s is not valid", kvmNatCIDR)
-		}
-
-		nextIP, err := incrementIP(gatewayIP, *ipNet)
+		gatewayIP, _, guestIP, loadBalancerStartIP, loadBalancerEndIP, err := pkgutil.AllocateIPs(kvmNatCIDR)
 		if err != nil {
 			return err
 		}
@@ -1055,7 +1031,7 @@ func setDriverConfiguration(mc *config.MachineConfig, cmd *cobra.Command) error 
 			NetworkInterfaces: []config.NetworkInterface{
 				{
 					Name:       "eth1",
-					IPAddress:  nextIP.String(),
+					IPAddress:  guestIP.String(),
 					Netmask:    strconv.Itoa(ones),
 					Gateway:    gatewayIP.String(),
 					DNS:        []string{},
@@ -1069,6 +1045,8 @@ func setDriverConfiguration(mc *config.MachineConfig, cmd *cobra.Command) error 
 		mc.KVMPrivateNetworkStartIP = ""
 		mc.KVMPrivateNetworkEndIP = ""
 		mc.MetadataCustomizers = []string{"network"}
+		mc.KubernetesConfig.LoadBalancerStartIP = loadBalancerStartIP.String()
+		mc.KubernetesConfig.LoadBalancerEndIP = loadBalancerEndIP.String()
 	}
 
 	return nil
