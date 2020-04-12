@@ -15,7 +15,7 @@ matrix:
       env:
         - TESTSUITE=lintall
       before_install:
-        - sudo apt-get install -y libc-dev libvirt-dev
+        - sudo apt-get install -y libc-dev libarchive-dev libexpat1-dev libxml2-dev libbz2-dev liblz4-dev liblzma-dev libzstd-dev nettle-dev libz-dev liblzo2-dev libvirt-dev
       script: make test
 
     - language: go
@@ -24,7 +24,7 @@ matrix:
       env:
         - TESTSUITE=unittest
       before_install:
-        - sudo apt-get install -y libc-dev libvirt-dev
+        - sudo apt-get install -y libc-dev libarchive-dev libexpat1-dev libxml2-dev libbz2-dev liblz4-dev liblzma-dev libzstd-dev nettle-dev libz-dev liblzo2-dev libvirt-dev
       script: make test
 
     - language: go
