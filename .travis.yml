@@ -15,7 +15,7 @@ matrix:
       env:
         - TESTSUITE=lintall
       before_install:
-        - sudo apt-get install -y libvirt-dev
+        - sudo apt-get install -y libc-dev libvirt-dev
       script: make test
 
     - language: go
@@ -24,7 +24,7 @@ matrix:
       env:
         - TESTSUITE=unittest
       before_install:
-        - sudo apt-get install -y libvirt-dev
+        - sudo apt-get install -y libc-dev libvirt-dev
       script: make test
 
     - language: go
