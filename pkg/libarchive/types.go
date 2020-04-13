@@ -63,7 +63,7 @@ func (ft FileType) IsRegular() bool {
 	return ft == ModeRegularFile
 }
 
-func (ft FileType) ToC() C.uint {
+func (ft FileType) toC() C.uint {
 	return C.uint(ft)
 }
 

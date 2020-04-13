@@ -49,6 +49,6 @@ func init() {
 	createCmd.Flags().String("out", "", "Path of the new ISO")
 	createCmd.Flags().String("base-dir", "", "The base dir where all files to add locate")
 	createCmd.Flags().StringSlice("options", []string{}, "ISO options")
-	createCmd.MarkFlagRequired("out")
-	createCmd.MarkFlagRequired("base-dir")
+	_ = createCmd.MarkFlagRequired("out")
+	_ = createCmd.MarkFlagRequired("base-dir")
 }

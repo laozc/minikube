@@ -17,11 +17,13 @@ limitations under the License.
 package cmd
 
 import (
+	"os"
+
 	goflag "flag"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	"os"
 
 	// initflag must be imported before any other minikube pkg.
 	// Fix for https://github.com/kubernetes/minikube/issues/4866
@@ -62,11 +64,7 @@ func init() {
 	RootCmd.Flags().String("out", "", "Path of the patched ISO")
 	RootCmd.Flags().String("baseDir", "", "The base dir where patched files locate")
 	RootCmd.Flags().StringSlice("options", []string{}, "ISO options")
-	RootCmd.MarkFlagRequired("source")
-	RootCmd.MarkFlagRequired("out")
-	RootCmd.MarkFlagRequired("baseDir")
-}
-
-func main() {
-	Execute()
+	_ = RootCmd.MarkFlagRequired("source")
+	_ = RootCmd.MarkFlagRequired("out")
+	_ = RootCmd.MarkFlagRequired("baseDir")
 }

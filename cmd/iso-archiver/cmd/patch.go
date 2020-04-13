@@ -54,7 +54,7 @@ func init() {
 	patchCmd.Flags().String("out", "", "Path of the patched ISO")
 	patchCmd.Flags().String("base-dir", "", "The base dir where patched files locate")
 	patchCmd.Flags().StringSlice("options", []string{}, "ISO options")
-	patchCmd.MarkFlagRequired("source")
-	patchCmd.MarkFlagRequired("out")
-	patchCmd.MarkFlagRequired("base-dir")
+	_ = patchCmd.MarkFlagRequired("source")
+	_ = patchCmd.MarkFlagRequired("out")
+	_ = patchCmd.MarkFlagRequired("base-dir")
 }

@@ -77,10 +77,10 @@ func (r *Reader) Read(size Size) ([]byte, error) {
 			readBytes = size
 		}
 
-		len := SSize(C.archive_read_data(r.ar, buf, readBytes.ToC()))
+		len := SSize(C.archive_read_data(r.ar, buf, readBytes.toC()))
 		for len > 0 {
 			goBuf := make([]byte, readBytes)
-			C.memcpy(unsafe.Pointer(&goBuf[0]), buf, readBytes.ToC())
+			C.memcpy(unsafe.Pointer(&goBuf[0]), buf, readBytes.toC())
 			result = append(result, goBuf...)
 		}
 		if len < 0 {
@@ -100,7 +100,7 @@ func (r *Reader) CopyTo(writer io.Writer, size SSize) (SSize, error) {
 		len := SSize(C.archive_read_data(r.ar, buf, bufferSize))
 		for len > 0 {
 			goBuf := make([]byte, len)
-			C.memcpy(unsafe.Pointer(&goBuf[0]), buf, Size(len).ToC())
+			C.memcpy(unsafe.Pointer(&goBuf[0]), buf, Size(len).toC())
 
 			_, err := writer.Write(goBuf)
 			if err != nil {
@@ -120,7 +120,8 @@ func (r *Reader) CopyTo(writer io.Writer, size SSize) (SSize, error) {
 
 func (r *Reader) NextEntry() (*Entry, error) {
 	var entry *C.struct_archive_entry
-	switch C.archive_read_next_header(r.ar, &entry) {
+	entryPointer := &entry
+	switch C.archive_read_next_header(r.ar, entryPointer) {
 	case C.ARCHIVE_OK:
 		return NewEntryFromEntryStruct(entry), nil
 

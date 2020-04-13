@@ -62,7 +62,7 @@ func ExtractISO(source string, dest string) error {
 
 	defer input.Close()
 
-	for true {
+	for {
 		e, err := input.NextEntry()
 		if err != nil {
 			return errors.Wrapf(err, "failed to get entry from %s", source)
@@ -124,7 +124,7 @@ func PatchISO(source string, dest string, files map[string]string, options []str
 		return err
 	}
 
-	for true {
+	for {
 		e, err := input.NextEntry()
 		if err != nil {
 			return errors.Wrapf(err, "failed to get entry from %s", source)

@@ -66,7 +66,7 @@ func (e *Entry) GetMode() Mode {
 }
 
 func (e *Entry) SetMode(mode Mode) {
-	C.archive_entry_set_mode(e.entry, mode.ToC())
+	C.archive_entry_set_mode(e.entry, mode.toC())
 }
 
 func (e *Entry) GetFileType() FileType {
@@ -75,7 +75,7 @@ func (e *Entry) GetFileType() FileType {
 }
 
 func (e *Entry) SetFileType(ft FileType) {
-	C.archive_entry_set_filetype(e.entry, ft.ToC())
+	C.archive_entry_set_filetype(e.entry, ft.toC())
 }
 
 func (e *Entry) GetPermission() os.FileMode {
@@ -84,7 +84,7 @@ func (e *Entry) GetPermission() os.FileMode {
 }
 
 func (e *Entry) SetPermission(perm os.FileMode) {
-	C.archive_entry_set_perm(e.entry, Mode(perm).ToC())
+	C.archive_entry_set_perm(e.entry, Mode(perm).toC())
 }
 
 func (e *Entry) GetUserID() UserID {
@@ -92,7 +92,7 @@ func (e *Entry) GetUserID() UserID {
 }
 
 func (e *Entry) SetUserID(uid UserID) {
-	C.archive_entry_set_uid(e.entry, uid.ToC())
+	C.archive_entry_set_uid(e.entry, uid.toC())
 }
 
 func (e *Entry) SetUserName(uname string) {
@@ -106,7 +106,7 @@ func (e *Entry) GetGroupID() GroupID {
 }
 
 func (e *Entry) SetGroupID(gid GroupID) {
-	C.archive_entry_set_gid(e.entry, gid.ToC())
+	C.archive_entry_set_gid(e.entry, gid.toC())
 }
 
 func (e *Entry) SetGroupName(gname string) {
@@ -127,7 +127,7 @@ func (e *Entry) GetSize() SSize {
 }
 
 func (e *Entry) SetSize(size SSize) {
-	C.archive_entry_set_size(e.entry, size.ToC())
+	C.archive_entry_set_size(e.entry, size.toC())
 }
 
 func (e *Entry) GetAccessTime() *time.Time {
@@ -148,7 +148,7 @@ func (e *Entry) SetAccessTime(t *time.Time) {
 	}
 
 	tm, nsec := TimeWithNanosecond(*t).ToC()
-	C.archive_entry_set_atime(e.entry, tm.ToC(), nsec.ToC())
+	C.archive_entry_set_atime(e.entry, tm.toC(), nsec.toC())
 }
 
 func (e *Entry) GetModifiedTime() *time.Time {
@@ -169,5 +169,5 @@ func (e *Entry) SetModifiedTime(t *time.Time) {
 	}
 
 	tm, nsec := TimeWithNanosecond(*t).ToC()
-	C.archive_entry_set_mtime(e.entry, tm.ToC(), nsec.ToC())
+	C.archive_entry_set_mtime(e.entry, tm.toC(), nsec.toC())
 }

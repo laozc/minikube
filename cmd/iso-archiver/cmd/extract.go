@@ -46,6 +46,6 @@ func init() {
 	RootCmd.AddCommand(extractCmd)
 	extractCmd.Flags().String("source", "", "Path of the ISO")
 	extractCmd.Flags().String("out", "", "The directory to store all the extracted files")
-	extractCmd.MarkFlagRequired("source")
-	extractCmd.MarkFlagRequired("out")
+	_ = extractCmd.MarkFlagRequired("source")
+	_ = extractCmd.MarkFlagRequired("out")
 }

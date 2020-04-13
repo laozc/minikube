@@ -18,30 +18,30 @@ package libarchive
 
 import "C"
 
-func (u UserID) ToC() C.longlong {
+func (u UserID) toC() C.longlong {
 	return C.longlong(u)
 }
 
-func (g GroupID) ToC() C.longlong {
+func (g GroupID) toC() C.longlong {
 	return C.longlong(g)
 }
 
-func (m Mode) ToC() C.ushort {
+func (m Mode) toC() C.ushort {
 	return C.ushort(m)
 }
 
-func (s Size) ToC() C.ulong {
+func (s Size) toC() C.ulong {
 	return C.ulong(s)
 }
 
-func (s SSize) ToC() C.longlong {
+func (s SSize) toC() C.longlong {
 	return C.longlong(s)
 }
 
-func (t UnixTime) ToC() C.long {
+func (t UnixTime) toC() C.long {
 	return C.long(t)
 }
 
-func (t Nanosecond) ToC() C.long {
+func (t Nanosecond) toC() C.long {
 	return C.long(t)
 }

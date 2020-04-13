@@ -26,7 +26,11 @@ import (
 
 func getISOFileMapping(dir string) (map[string]string, error) {
 	files := map[string]string{}
-	if err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
 		if path == dir || info.IsDir() {
 			return nil
 		}
@@ -40,8 +44,6 @@ func getISOFileMapping(dir string) (map[string]string, error) {
 		files[path] = fmt.Sprintf("/%s", slashPath)
 		return nil
 
-	}); err != nil {
-		return nil, err
-	}
-	return files, nil
+	})
+	return files, err
 }

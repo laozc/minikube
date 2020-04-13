@@ -97,7 +97,7 @@ func (r *Writer) Write(data []byte) (SSize, error) {
 	var written SSize
 	len := len(data)
 	if len > 0 {
-		r := SSize(C.archive_write_data(r.ar, unsafe.Pointer(&data[0]), Size(len).ToC()))
+		r := SSize(C.archive_write_data(r.ar, unsafe.Pointer(&data[0]), Size(len).toC()))
 		if int(r) != len {
 			return written, errors.Errorf("error writing data to output archive")
 		}
@@ -114,7 +114,7 @@ func (r *Writer) CopyFrom(reader *Reader, size SSize) (SSize, error) {
 
 		len := SSize(C.archive_read_data(reader.ar, buf, bufferSize))
 		for len > 0 {
-			if SSize(C.archive_write_data(r.ar, buf, Size(len).ToC())) != len {
+			if SSize(C.archive_write_data(r.ar, buf, Size(len).toC())) != len {
 				return written, errors.Errorf("error writing data to output archive")
 			}
 
