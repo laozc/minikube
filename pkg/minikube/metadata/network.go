@@ -20,13 +20,14 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"k8s.io/minikube/pkg/minikube/config"
 	"os"
 	"path/filepath"
 	"text/template"
 
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
+
+	"k8s.io/minikube/pkg/minikube/config"
 )
 
 var systemdNetworkdIPv4ConfigTemplate = template.Must(template.New("systemdNetworkdIPv4ConfigTemplate").Parse(`[Match]

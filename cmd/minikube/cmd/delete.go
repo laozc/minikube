@@ -33,7 +33,6 @@ import (
 	"github.com/spf13/viper"
 	cmdcfg "k8s.io/minikube/cmd/minikube/cmd/config"
 	"k8s.io/minikube/pkg/minikube/cluster"
-	"k8s.io/minikube/pkg/minikube/config"
 	pkg_config "k8s.io/minikube/pkg/minikube/config"
 	"k8s.io/minikube/pkg/minikube/constants"
 	"k8s.io/minikube/pkg/minikube/cruntime"
@@ -93,7 +92,7 @@ func runDelete(cmd *cobra.Command, args []string) {
 	if len(args) > 0 {
 		exit.UsageT("Usage: minikube delete")
 	}
-	profileFlag := viper.GetString(config.MachineProfile)
+	profileFlag := viper.GetString(pkg_config.MachineProfile)
 
 	validProfiles, invalidProfiles, err := pkg_config.ListProfiles()
 	profilesToDelete := append(validProfiles, invalidProfiles...)

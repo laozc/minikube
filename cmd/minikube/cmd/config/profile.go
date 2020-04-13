@@ -22,7 +22,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	pkgConfig "k8s.io/minikube/pkg/minikube/config"
-	pkg_config "k8s.io/minikube/pkg/minikube/config"
 	"k8s.io/minikube/pkg/minikube/exit"
 	"k8s.io/minikube/pkg/minikube/kubeconfig"
 	"k8s.io/minikube/pkg/minikube/out"
@@ -78,7 +77,7 @@ var ProfileCmd = &cobra.Command{
 		}
 		cc, err := pkgConfig.Load(profile)
 		// might err when loading older version of cfg file that doesn't have KeepContext field
-		if err != nil && !pkg_config.IsNotExist(err) {
+		if err != nil && !pkgConfig.IsNotExist(err) {
 			out.ErrT(out.Sad, `Error loading profile config: {{.error}}`, out.V{"error": err})
 		}
 		if err == nil {

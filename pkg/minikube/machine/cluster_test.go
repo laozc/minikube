@@ -38,7 +38,7 @@ import (
 
 type MockDownloader struct{}
 
-func (d MockDownloader) GetISOCacheFilepath(isoURL string) string { return "" }
+func (d MockDownloader) GetISOCacheFilepath(isoURL string) string    { return "" }
 func (d MockDownloader) GetISOFileURI(isoURL string) string          { return "" }
 func (d MockDownloader) CacheMinikubeISOFromURL(isoURL string) error { return nil }
 

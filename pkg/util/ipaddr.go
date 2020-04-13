@@ -17,8 +17,9 @@ limitations under the License.
 package util
 
 import (
-	"github.com/pkg/errors"
 	"net"
+
+	"github.com/pkg/errors"
 )
 
 // guess next IP of the sub network
@@ -46,8 +47,8 @@ func GetIPNetRange(ipNet net.IPNet) (net.IP, net.IP, net.IP, error) {
 	networkBits := zeroes % 8
 	byteOffset := zeroes / 8
 	var hostBitsMask byte
-	for i := 0; i < networkBits; i += 1 {
-		hostBitsMask = hostBitsMask | (1 << i)
+	for i := 0; i < networkBits; i++ {
+		hostBitsMask |= 1 << i
 	}
 	lastNetworkBitMask := byte((1 << networkBits) - 1)
 
@@ -62,7 +63,7 @@ func GetIPNetRange(ipNet net.IPNet) (net.IP, net.IP, net.IP, error) {
 	}
 
 	// clear the host bits
-	networkStart[bytePos] = networkStart[bytePos] & ^hostBitsMask
+	networkStart[bytePos] &= ^hostBitsMask
 
 	// clear the rest host bits to 0
 	for i := len(networkStart) - 1; i > bytePos; i-- {
@@ -78,7 +79,7 @@ func GetIPNetRange(ipNet net.IPNet) (net.IP, net.IP, net.IP, error) {
 
 	ipBroadcast := make(net.IP, len(networkStart))
 	copy(ipBroadcast, networkStart)
-	ipBroadcast[bytePos] = ipBroadcast[bytePos] | lastNetworkBitMask
+	ipBroadcast[bytePos] |= lastNetworkBitMask
 	// set the rest host bits to 0xFF
 	for i := len(ipBroadcast) - 1; i > bytePos; i-- {
 		ipBroadcast[i] = 255

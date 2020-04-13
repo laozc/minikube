@@ -19,7 +19,6 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"k8s.io/minikube/pkg/minikube/metadata"
 	"math"
 	"net"
 	"net/url"
@@ -54,6 +53,7 @@ import (
 	"k8s.io/minikube/pkg/minikube/kubeconfig"
 	"k8s.io/minikube/pkg/minikube/localpath"
 	"k8s.io/minikube/pkg/minikube/machine"
+	"k8s.io/minikube/pkg/minikube/metadata"
 	"k8s.io/minikube/pkg/minikube/node"
 	"k8s.io/minikube/pkg/minikube/notify"
 	"k8s.io/minikube/pkg/minikube/out"
@@ -236,7 +236,7 @@ func initDriverFlags() {
 	startCmd.Flags().Bool(hypervUseNAT, false, "Whether to use internal switch with NAT over Default Switch if NAT is applicable. (hyperv driver only)")
 	startCmd.Flags().String(hypervExternalAdapter, "", "External Adapter on which external switch will be created if no external switch is found. (hyperv driver only)")
 	startCmd.Flags().String(HypervNatCIDR, constants.DefaultHypervNatCIDR, fmt.Sprintf("the CIDR to be used for Hyper-V allocating NAT networks, where the IP address represents the Gateway. (hyperv driver only, defaults to %s)", constants.DefaultHypervNatCIDR))
-	startCmd.Flags().StringSlice(HypervDNSServers, constants.DefaultHypervDNSServers, fmt.Sprintf("a list of DNS to be used to configure Hyper-V virtual NIC. (hyperv driver only)"))
+	startCmd.Flags().StringSlice(HypervDNSServers, constants.DefaultHypervDNSServers, "a list of DNS to be used to configure Hyper-V virtual NIC. (hyperv driver only)")
 }
 
 // initNetworkingFlags inits the commandline flags for connectivity related flags for start
@@ -962,7 +962,6 @@ func getKubernetesVersion(old *config.MachineConfig) string {
 	}
 
 	if nvs.LT(ovs) {
-		nv = version.VersionPrefix + ovs.String()
 		profileArg := ""
 		if old.Name != constants.DefaultMachineName {
 			profileArg = fmt.Sprintf("-p %s", old.Name)
@@ -981,7 +980,7 @@ func getKubernetesVersion(old *config.MachineConfig) string {
 }
 
 // setDriverConfiguration sets the driver-specific based on flags
-func setDriverConfiguration(mc *config.MachineConfig, cmd *cobra.Command) error {
+func setDriverConfiguration(mc *config.MachineConfig, _ *cobra.Command) error {
 	supports, _ := metadata.SupportsPatch()
 	if !supports {
 		return nil

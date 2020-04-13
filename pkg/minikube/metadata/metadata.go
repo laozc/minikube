@@ -19,7 +19,6 @@ package metadata
 import (
 	"fmt"
 	"io/ioutil"
-	"k8s.io/minikube/pkg/minikube/config"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -29,6 +28,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
 
+	"k8s.io/minikube/pkg/minikube/config"
 	"k8s.io/minikube/pkg/util"
 )
 
@@ -104,12 +104,12 @@ func SupportsPatch() (bool, error) {
 
 func PatchISO(isoPath, baseDir, outISO string, options []string) error {
 	_, err := SupportsPatch()
+	binary := getISOArchiverBinaryName()
 	if err != nil {
-		return errors.Wrapf(err, "Unable to find platform-specific iso-archiver binary %s", getISOArchiverBinaryName)
+		return errors.Wrapf(err, "Unable to find platform-specific iso-archiver binary %s", binary)
 	}
 
 	glog.V(4).Infof("Patching ISO %s...", isoPath)
-	binary := getISOArchiverBinaryName()
 	cmd := exec.Command(binary, "patch", "--source", isoPath, "--base-dir", baseDir, "--out", outISO, "--options", strings.Join(options, ","))
 	err = cmd.Run()
 	if err != nil {
